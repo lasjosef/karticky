@@ -77,6 +77,10 @@ textarea:focus,input[type=text]:focus{box-shadow:0 0 0 2px #3e63dd inset}
 .intent button{flex:1;background:var(--card);border-radius:16px;padding:12px 6px;text-align:center;border:2px solid transparent;font-weight:600;font-size:14px}
 .intent button span{display:block;font-size:22px;margin-bottom:2px}
 .intent button.on{border-color:var(--ink)}
+.catgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.catgrid button{background:var(--card);border:2px solid transparent;border-radius:14px;padding:8px 2px 7px;font-size:11.5px;font-weight:600;line-height:1.15;display:flex;flex-direction:column;align-items:center;gap:3px;min-height:62px;color:var(--muted)}
+.catgrid button span{font-size:22px}
+.catgrid button.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 14%,var(--card));color:var(--ink)}
 .more{color:#3e63dd;font-weight:600;padding:12px 4px}
 .savebar{position:sticky;bottom:calc(env(safe-area-inset-bottom) + 92px);margin-top:18px}
 .shared{background:var(--card);border-radius:14px;padding:10px 14px;font-size:14px;color:var(--muted);margin-bottom:10px;word-break:break-all}
@@ -330,7 +334,7 @@ function vAdd(){
   ${a.shared?`<div class="shared">From: ${linkify(a.shared)}</div>`:""}
   <textarea class="hero" id="atext" placeholder="What did you hear?&#10;e.g. “What's the story behind that?”">${esc(a.text)}</textarea>
   <div class="lab"><span>Category</span>${a.auto&&picked?`<span>✨ picked for you</span>`:""}</div>
-  <div class="chips scroll">${cats().map(c=>`<button class="chip ${picked===c.id?"on":""}" style="--c:${c.color}" data-acat="${c.id}">${c.emoji} ${esc(c.name)}</button>`).join("")}</div>
+  <div class="catgrid">${cats().map(c=>`<button class="${picked===c.id?"on":""}" style="--c:${c.color}" data-acat="${c.id}"><span>${c.emoji}</span>${esc(c.name)}</button>`).join("")}</div>
   <div class="lab"><span>How much do you want it?</span></div>
   <div class="intent">${INTENTS.map((t,i)=>`<button class="${a.intent===i?"on":""}" data-intent="${i}"><span>${t.emoji}</span>${t.name}</button>`).join("")}</div>
   ${a.more||a.cue||a.note?`
@@ -452,7 +456,6 @@ function render(){
   const n=dueCards(S.items).length, tb=nav.querySelector('[data-tab="today"]'); tb.querySelector(".badge")?.remove();
   if(n&&U.tab!=="today") tb.insertAdjacentHTML("beforeend",`<span class="badge">${n}</span>`);
   if(U.tab==="today") bindDeck();
-  if(U.tab==="add"){ const on=app.querySelector(".chips .chip.on"); if(on) on.scrollIntoView({block:"nearest",inline:"center"}); }
 }
 function go(tab){ if(!TABS.includes(tab)) tab="today"; U.tab=tab; U.open=null; U.edit=null; U.confirm=null; U.confirmOut=false; U.revealed=false;
   if(tab==="today") U.queue=U.queue&&U.practice?U.queue:null; try{history.replaceState(null,"",REDIRECT+"#"+tab);}catch(e){}
