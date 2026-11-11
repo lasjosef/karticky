@@ -1,0 +1,31 @@
+name: Card notifications
+# Wakes your phone twice a day; the phone itself picks the card (nothing about your cards is stored here).
+on:
+  schedule:
+    - cron: "17 7 * * *"    # ~8:20 Czech winter time
+    - cron: "37 17 * * *"   # ~18:40 Czech winter time
+  workflow_dispatch:
+permissions:
+  actions: write
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-save --silent web-push@3
+      - name: Send wake-up
+        env:
+          PUSH_CONFIG: ${{ secrets.PUSH_CONFIG }}
+        run: |
+          node -e '
+            const wp=require("web-push");
+            const raw=process.env.PUSH_CONFIG; if(!raw){console.log("No PUSH_CONFIG secret yet");process.exit(0);}
+            const c=JSON.parse(raw); wp.setVapidDetails(c.subject,c.publicKey,c.privateKey);
+            Promise.all((c.subs||[]).map(s=>wp.sendNotification(s,null,{TTL:4*3600}).then(()=>console.log("sent to",s.device||"device"),e=>console.log("failed",s.device||"device",e.statusCode))));
+          '
+      - name: Keep the schedule alive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/notify.yml/enable" || true
