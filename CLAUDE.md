@@ -1,6 +1,6 @@
 # Tip Cards (karticky) – personal card app
 
-Offline PWA for lines/tips the user wants to remember (dating, socializing, chatting, books, skills…).
+Offline PWA for lines/tips the user wants to remember. Login with Google required; swipe deck; card notifications.
 Runs on GitHub Pages: https://lasjosef.github.io/karticky (Android Chrome "Add to Home screen", PC browser).
 
 ## Rules

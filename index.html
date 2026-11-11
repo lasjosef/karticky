@@ -2,167 +2,156 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="theme-color" content="#eceef1" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#141517" media="(prefers-color-scheme: dark)">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#eef0f3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111214" media="(prefers-color-scheme: dark)">
+<title>Tip Cards</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Tip Cards</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#eceef1; --card:#ffffff; --ink:#1c222b; --muted:#6c7480; --line:#dfe3e8; --soft:#f4f5f7;
-    --red:#d63b3b; --blue:#2c6bd6; --yellow:#e2b11f; --green:#2b9a58; --black:#2f343b; --purple:#7a4fc9; --orange:#e2742a; --teal:#1f9aa0;
-    --accent:var(--blue);
-  }
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Barlow,system-ui,sans-serif;font-size:16px}
-  body{padding:calc(env(safe-area-inset-top) + 14px) 14px calc(env(safe-area-inset-bottom) + 110px)}
-  .wrap{max-width:560px;margin:0 auto}
-  h1{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:30px;letter-spacing:.3px;margin:4px 4px 2px;text-transform:uppercase}
-  .sub{color:var(--muted);margin:0 4px 16px;font-size:15px}
-  .card{background:var(--card);border-radius:20px;padding:18px;margin-bottom:12px;box-shadow:0 1px 2px rgba(20,30,50,.04)}
-  .chip{display:inline-flex;align-items:center;gap:6px;font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:14px;letter-spacing:.4px;text-transform:uppercase;padding:5px 11px;border-radius:999px;background:var(--soft);color:var(--ink);border:0;cursor:pointer}
-  .chip .dot{width:9px;height:9px;border-radius:50%}
-  .chip.on{color:#fff}
-  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-  .between{display:flex;justify-content:space-between;align-items:center;gap:8px}
-  .freq{font-family:"Barlow Condensed",sans-serif;font-weight:600;color:var(--muted);font-size:14px;text-transform:uppercase;letter-spacing:.4px}
-  .bigtext{font-size:23px;line-height:1.35;font-weight:600;margin:16px 0 6px;white-space:pre-wrap}
-  .cue{font-size:19px;line-height:1.4;margin:16px 0 6px;color:var(--ink);white-space:pre-wrap}
-  .cue small{display:block;font-family:"Barlow Condensed",sans-serif;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-  .hint{color:var(--muted);font-size:19px;margin:16px 0 6px}
-  .note{color:var(--muted);font-size:14px;margin-top:8px;white-space:pre-wrap;word-break:break-word}
-  .note a{color:var(--accent)}
-  .ask{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:18px;text-transform:uppercase;letter-spacing:.4px;margin:18px 0 8px}
-  button.btn{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:18px;letter-spacing:.5px;text-transform:uppercase;border:0;border-radius:14px;padding:14px 16px;cursor:pointer;background:var(--soft);color:var(--ink);flex:1;min-width:0}
-  button.btn.main{background:var(--ink);color:#fff}
-  button.btn.yes{background:var(--green);color:#fff}
-  button.btn.mid{background:var(--yellow);color:#1c222b}
-  button.btn.no{background:var(--red);color:#fff}
-  button.btn.small{font-size:15px;padding:9px 12px;flex:0 0 auto;border-radius:11px}
-  .btns{display:flex;gap:8px;margin-top:14px}
-  label.lbl{display:block;font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:14px 2px 6px}
-  label.lbl span{text-transform:none;letter-spacing:0;font-family:Barlow;font-weight:400}
-  textarea,input[type=text]{width:100%;font:inherit;font-size:17px;border:0;background:var(--soft);border-radius:14px;padding:12px 14px;color:var(--ink);outline:none;resize:vertical}
-  textarea:focus,input[type=text]:focus{box-shadow:0 0 0 2px var(--accent) inset}
-  .seg{display:flex;background:var(--soft);border-radius:14px;padding:4px;gap:4px}
-  .seg button{flex:1;border:0;background:transparent;border-radius:11px;padding:10px 4px;font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:16px;cursor:pointer;color:var(--muted)}
-  .seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
-  .progress{height:6px;background:var(--line);border-radius:6px;overflow:hidden;margin:0 4px 14px}
-  .progress div{height:100%;background:var(--ink);border-radius:6px;transition:width .3s}
-  .empty{text-align:center;padding:36px 18px}
-  .empty .big{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:26px;text-transform:uppercase}
-  .list .item{cursor:pointer}
-  .item .t{font-weight:600;font-size:17px;margin:8px 0 2px;white-space:pre-wrap}
-  .item .meta{color:var(--muted);font-size:14px}
-  .ladder{display:flex;gap:3px;margin-top:10px}
-  .ladder i{flex:1;height:5px;border-radius:4px;background:var(--line)}
-  .ladder i.f{background:var(--ink)}
-  .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 96px);transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:12px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20;white-space:nowrap}
-  .toast.show{opacity:1}
-  nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 16px);background:var(--card);border-radius:22px;padding:8px;display:flex;gap:6px;box-shadow:0 8px 28px rgba(20,30,50,.16);z-index:10}
-  nav button{border:0;background:transparent;width:64px;height:52px;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;color:var(--muted);position:relative}
-  nav button span{font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
-  nav button.on{background:var(--ink);color:#fff}
-  nav .badge{position:absolute;top:4px;right:10px;background:var(--red);color:#fff;font-size:11px;font-weight:700;border-radius:9px;padding:1px 6px}
-  .status{color:var(--muted);font-size:13px;text-align:center;margin-top:10px}
-  .inline-confirm{background:#fdecec;border-radius:14px;padding:12px;margin-top:10px}
-  .filebtn{display:inline-block;cursor:pointer;font-family:"Barlow Condensed",sans-serif;font-weight:700;letter-spacing:.5px;text-transform:uppercase;background:var(--soft);border-radius:11px;padding:9px 12px;font-size:15px}
-  .syncline{font-size:14px;color:var(--muted)}
-  .syncline.ok{color:var(--green)} .syncline.warn{color:var(--orange)}
-  @media (prefers-color-scheme: dark){
-    :root{--bg:#141517;--card:#1f2125;--ink:#eef0f3;--muted:#9aa1ab;--line:#2e3137;--soft:#2a2d32;--black:#8b929c}
-    button.btn.main{background:#eef0f3;color:#141517} nav button.on{background:#eef0f3;color:#141517}
-    .progress div{background:#eef0f3} .ladder i.f{background:#eef0f3} .inline-confirm{background:#3a2222}
-    .toast{background:#eef0f3;color:#141517}
-  }
-  .howto p{margin:6px 0;color:var(--ink);line-height:1.45}
-  .howto table{width:100%;border-collapse:collapse;font-size:15px;margin-top:6px}
-  .howto td{padding:5px 2px;border-bottom:1px solid var(--line)}
-  .howto td:last-child{color:var(--muted);text-align:right}
+:root{--bg:#eef0f3;--card:#fff;--ink:#16191d;--muted:#6b7280;--line:#e2e5ea;--soft:#f3f4f6;--know:#22a061;--again:#f0802a;--shadow:0 10px 30px rgba(20,28,40,.12)}
+@media (prefers-color-scheme:dark){:root{--bg:#111214;--card:#1c1d21;--ink:#eef0f3;--muted:#9aa1ab;--line:#2c2f35;--soft:#25272c;--shadow:0 10px 30px rgba(0,0,0,.45)}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Barlow,system-ui,sans-serif;font-size:16px;overscroll-behavior:none}
+body{padding:calc(env(safe-area-inset-top) + 12px) 16px calc(env(safe-area-inset-bottom) + 104px)}
+.wrap{max-width:520px;margin:0 auto}
+.cond{font-family:"Barlow Condensed",sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+h1{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:30px;text-transform:uppercase;letter-spacing:.3px;margin:2px 2px 0}
+.top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:14px}
+.sub{color:var(--muted);font-size:15px;margin:2px 2px 0}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--muted);margin-right:6px;vertical-align:middle}
+.dot.ok{background:var(--know)}.dot.warn{background:var(--again)}
+.panel{background:var(--card);border-radius:22px;padding:18px;margin-bottom:12px}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+.btn{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:18px;letter-spacing:.5px;text-transform:uppercase;border-radius:14px;padding:14px 18px;background:var(--soft);display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn.main{background:var(--ink);color:var(--bg)}
+.btn.full{width:100%}
+.btn.small{font-size:15px;padding:9px 13px;border-radius:11px}
+.link{color:#3e63dd;text-decoration:none;font-weight:600}
+.muted{color:var(--muted)}
+/* ---------- deck ---------- */
+.deck{position:relative;height:min(60vh,500px);margin:4px 0 18px}
+.tc{position:absolute;inset:0;background:var(--card);border-radius:28px;box-shadow:var(--shadow);display:flex;flex-direction:column;padding:22px 22px 18px;touch-action:none;user-select:none;-webkit-user-select:none;overflow:hidden;will-change:transform}
+.tc.back1{transform:translateY(14px) scale(.95);opacity:.7}
+.tc.back2{transform:translateY(28px) scale(.9);opacity:.4}
+.tc .band{position:absolute;left:0;right:0;top:0;height:7px}
+.tc .head{display:flex;justify-content:space-between;align-items:center}
+.tag{display:inline-flex;align-items:center;gap:6px;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:14px;letter-spacing:.5px;text-transform:uppercase;padding:6px 11px;border-radius:999px;background:var(--soft)}
+.tc .body{flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px;overflow:auto}
+.tc .cue{font-size:19px;line-height:1.35;color:var(--muted)}
+.tc .cue b{display:block;font-family:"Barlow Condensed",sans-serif;font-size:13px;letter-spacing:.6px;text-transform:uppercase;margin-bottom:4px}
+.tc .line{font-size:26px;line-height:1.28;font-weight:700;white-space:pre-wrap}
+.tc .line.long{font-size:21px}
+.tc .reveal{border:2px dashed var(--line);border-radius:18px;padding:22px;text-align:center;color:var(--muted);font-weight:600}
+.tc .note{font-size:14px;color:var(--muted);word-break:break-word}
+.tc .foot{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+.stamp{position:absolute;top:26px;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:30px;letter-spacing:1px;padding:4px 12px;border:4px solid;border-radius:12px;opacity:0;pointer-events:none}
+.stamp.k{left:22px;color:var(--know);transform:rotate(-12deg)}
+.stamp.a{right:22px;color:var(--again);transform:rotate(12deg)}
+.actions{display:flex;justify-content:center;align-items:center;gap:22px}
+.round{width:68px;height:68px;border-radius:50%;background:var(--card);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700}
+.round.a{color:var(--again)}.round.k{color:var(--know)}
+.round.u{width:46px;height:46px;font-size:18px;color:var(--muted)}
+.hintrow{text-align:center;color:var(--muted);font-size:13px;margin-top:12px}
+.done{text-align:center;padding:34px 22px}
+.done .big{font-size:54px}
+.done h2{font-family:"Barlow Condensed",sans-serif;text-transform:uppercase;font-size:28px;margin:8px 0 4px}
+.stats{display:flex;gap:10px;margin:18px 0}
+.stat{flex:1;background:var(--soft);border-radius:16px;padding:12px 8px;text-align:center}
+.stat b{display:block;font-family:"Barlow Condensed",sans-serif;font-size:26px}
+.stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+/* ---------- add ---------- */
+textarea,input[type=text]{width:100%;font:inherit;font-size:17px;border:0;background:var(--soft);border-radius:16px;padding:14px 16px;color:var(--ink);outline:none;resize:none}
+textarea.hero{font-size:22px;font-weight:600;min-height:130px;background:var(--card);box-shadow:var(--shadow);border-radius:22px;padding:18px 20px}
+textarea:focus,input[type=text]:focus{box-shadow:0 0 0 2px #3e63dd inset}
+.lab{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:13px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin:16px 4px 8px;display:flex;justify-content:space-between}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chips.scroll{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;margin:0 -16px;padding-left:16px;padding-right:16px;scrollbar-width:none}
+.chip{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;padding:9px 13px;border-radius:999px;background:var(--card);font-weight:600;font-size:15px;border:2px solid transparent}
+.chip.on{border-color:var(--c,var(--ink));background:color-mix(in srgb,var(--c,var(--ink)) 14%,var(--card))}
+.intent{display:flex;gap:8px}
+.intent button{flex:1;background:var(--card);border-radius:16px;padding:12px 6px;text-align:center;border:2px solid transparent;font-weight:600;font-size:14px}
+.intent button span{display:block;font-size:22px;margin-bottom:2px}
+.intent button.on{border-color:var(--ink)}
+.more{color:#3e63dd;font-weight:600;padding:12px 4px}
+.savebar{position:sticky;bottom:calc(env(safe-area-inset-bottom) + 92px);margin-top:18px}
+.shared{background:var(--card);border-radius:14px;padding:10px 14px;font-size:14px;color:var(--muted);margin-bottom:10px;word-break:break-all}
+/* ---------- library ---------- */
+.search{background:var(--card)!important;margin-bottom:10px}
+.item{background:var(--card);border-radius:18px;padding:14px 16px 14px 18px;margin-bottom:10px;position:relative;overflow:hidden;cursor:pointer}
+.item:before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--c)}
+.item .t{font-weight:600;font-size:17px;line-height:1.3;white-space:pre-wrap}
+.item .m{font-size:13px;color:var(--muted);margin-top:6px;display:flex;justify-content:space-between;gap:8px}.item .m span:last-child{white-space:nowrap}
+.lv{display:inline-flex;gap:3px;vertical-align:middle}
+.lv i{width:6px;height:6px;border-radius:50%;background:var(--line)}.lv i.f{background:var(--c)}
+.confirm{background:color-mix(in srgb,var(--again) 14%,var(--card));border-radius:14px;padding:12px;margin-top:12px}
+.row{display:flex;gap:8px;margin-top:12px}.row>*{flex:1}
+/* ---------- settings ---------- */
+.set h3{font-family:"Barlow Condensed",sans-serif;text-transform:uppercase;letter-spacing:.4px;font-size:19px;margin:0 0 8px}
+.set p{margin:6px 0;line-height:1.45}
+.me{display:flex;align-items:center;gap:12px}
+.me img,.me .av{width:44px;height:44px;border-radius:50%;background:var(--soft);display:flex;align-items:center;justify-content:center;font-weight:700}
+.step{display:flex;gap:10px;align-items:flex-start;margin:10px 0}
+.step .n{flex:0 0 26px;height:26px;border-radius:50%;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+.step.ok .n{background:var(--know)}
+code{background:var(--soft);padding:2px 6px;border-radius:6px;font-size:14px}
+/* ---------- login ---------- */
+.login{min-height:calc(100vh - 140px);display:flex;flex-direction:column;justify-content:center;text-align:center;gap:10px}
+.login .logo{width:92px;height:92px;border-radius:26px;margin:0 auto 8px;box-shadow:var(--shadow)}
+.login h1{font-size:40px}
+.login .sub{font-size:17px;margin-bottom:22px}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:12px;background:var(--card);box-shadow:var(--shadow);border-radius:16px;padding:16px;font-weight:700;font-size:17px;width:100%}
+.fine{font-size:13px;color:var(--muted);margin-top:14px;line-height:1.5}
+/* ---------- nav / toast ---------- */
+nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 14px);background:var(--card);border-radius:24px;padding:8px;display:flex;gap:4px;align-items:center;box-shadow:0 8px 28px rgba(0,0,0,.18);z-index:10}
+nav button{width:62px;height:52px;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--muted);position:relative}
+nav button span{font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+nav button.on{color:var(--ink)}
+nav button.plus{width:56px;height:56px;border-radius:18px;background:var(--ink);color:var(--bg);margin:0 4px}
+nav .badge{position:absolute;top:3px;right:9px;background:#e5484d;color:#fff;font-size:11px;font-weight:700;border-radius:9px;padding:1px 6px}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 92px);transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20;white-space:nowrap}
+.toast.show{opacity:1}
+.hidden{display:none!important}
 </style>
 </head>
 <body>
 <div class="wrap" id="app"></div>
-<nav id="nav">
-  <button data-tab="today"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="5" width="13" height="16" rx="3"/><path d="M8 3h9a3 3 0 0 1 3 3v11"/></svg><span>Today</span></button>
-  <button data-tab="add"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span>Add</span></button>
-  <button data-tab="all"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg><span>Cards</span></button>
-  <button data-tab="how"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01"/></svg><span>How</span></button>
+<nav id="nav" class="hidden">
+  <button data-tab="today"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="4" width="14" height="17" rx="3"/><path d="M9 2.5h8a3 3 0 0 1 3 3v12"/></svg><span>Cards</span></button>
+  <button data-tab="lib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg><span>Library</span></button>
+  <button data-tab="add" class="plus" aria-label="Add a card"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+  <button data-tab="set"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg><span>Notify</span></button>
+  <button data-tab="me"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Me</span></button>
 </nav>
 <div class="toast" id="toast"></div>
-
+<script src="core.js"></script>
 <script>
-/* ---------- frequency ladder ----------
-   level 0 = 7x a week ... level 7 = 1x a year. Never switches off. */
-const LEVELS = [
-  {label:"7× a week",   days:1},
-  {label:"3× a week",   days:2},
-  {label:"1× a week",   days:7},
-  {label:"3× a month",  days:10},
-  {label:"1× a month",  days:30},
-  {label:"Every 3 months", days:91},
-  {label:"2× a year",   days:182},
-  {label:"1× a year",   days:365},
-];
-// how many reads before "Do you remember it?" — frequent levels wait for 3 reads,
-// slow levels ask every time (otherwise a monthly card would need 3 months to move)
-const READS_BEFORE_CHECK = l => l <= 2 ? 3 : 1;
-const PLATE = ["red","blue","yellow","green","black","purple","orange","teal"];
-const DEFAULT_CATS = [
-  {name:"Dating",color:"red"},{name:"Socializing",color:"blue"},{name:"Chatting",color:"yellow"},
-  {name:"Books",color:"green"},{name:"Skills",color:"black"}
-];
-
-/* ---------- dates ---------- */
-const pad = n => String(n).padStart(2,"0");
-const ymd = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-const today = () => ymd(new Date());
-const addDays = (s,n) => { const [y,m,d]=s.split("-").map(Number); const x=new Date(y,m-1,d); x.setDate(x.getDate()+n); return ymd(x); };
-const nice = s => { if(!s) return ""; const t=today(); if(s<=t) return "today"; if(s===addDays(t,1)) return "tomorrow";
-  const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d).toLocaleDateString(undefined,{day:"numeric",month:"short",year: y!==new Date().getFullYear()?"numeric":undefined}); };
-const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,7);
-
-/* ---------- storage: this device first (works offline), synced through your own Google Drive ---------- */
+/* ================= Google sign-in + Drive (your own Drive, folder "Karticky") ================= */
 const CLIENT_ID="442015155431-ibljcsrig896c9ds3isod4utsbko7pbv.apps.googleusercontent.com";
-const LS={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},
-  set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}, del(k){try{localStorage.removeItem(k);}catch(e){}}};
-// S.all keeps every record incl. deleted ones ({id,del:true,upd}) so a delete also reaches the other device
-const S = { all:new Map(), cards:new Map(), cats:DEFAULT_CATS.slice(), catsUpd:0 };
-function rebuild(){ S.cards=new Map([...S.all.values()].filter(c=>!c.del).map(c=>[c.id,c])); }
-function load(){ const j=LS.get("kc_data",null); if(j){ S.all=new Map((j.items||[]).map(c=>[c.id,c])); if(j.cats&&j.cats.length){S.cats=j.cats;S.catsUpd=j.catsUpd||0;} } rebuild(); }
-function persist(){ LS.set("kc_data",{items:[...S.all.values()],cats:S.cats,catsUpd:S.catsUpd}); LS.set("kc_dirty",true); syncSoon(); }
-function saveCard(c){ c.upd=Date.now(); S.all.set(c.id,c); rebuild(); persist(); render(); }
-function deleteCard(id){ S.all.set(id,{id,del:true,upd:Date.now()}); rebuild(); persist(); render(); }
-function saveCats(){ S.catsUpd=Date.now(); persist(); render(); }
-
-/* ---- Google Drive (scope drive.file: the app sees only its own folder "Karticky") ---- */
 const API="https://www.googleapis.com/drive/v3", UP="https://www.googleapis.com/upload/drive/v3";
-const FOLDER="Karticky", FILE="karticky.json";
+const FOLDER="Karticky", FILE="karticky.json", REPO="lasjosef/karticky";
 const REDIRECT=location.origin+location.pathname;
-let syncState="idle", syncErr="";
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}},del(k){try{localStorage.removeItem(k);}catch(e){}}};
 const linked=()=>LS.get("kc_linked",false);
 const tok=()=>{const t=LS.get("kc_token",null);return t&&t.exp>Date.now()+60000?t.v:null;};
 function oauthUrl(silent){
-  const st=Math.random().toString(36).slice(2); LS.set("kc_oauth",{st,back:"#"+(U.tab||"today")});
+  const st=Math.random().toString(36).slice(2); LS.set("kc_oauth",{st,back:"#"+U.tab});
   const q=new URLSearchParams({client_id:CLIENT_ID,redirect_uri:REDIRECT,response_type:"token",scope:"https://www.googleapis.com/auth/drive.file",state:st,include_granted_scopes:"true"});
-  if(silent) q.set("prompt","none"); else if(!linked()) q.set("prompt","consent");
+  if(silent) q.set("prompt","none"); else q.set("prompt","select_account");
   return "https://accounts.google.com/o/oauth2/v2/auth?"+q;
 }
 function login(){ location.href=oauthUrl(false); }
-function silentLogin(){ // new token without clicking while you're signed in to Google
-  const last=+(sessionStorage.getItem("kc_silent")||0); if(Date.now()-last<30*60e3) return false;
-  sessionStorage.setItem("kc_silent",Date.now()); location.href=oauthUrl(true); return true;
-}
+function silentLogin(){ const last=+(sessionStorage.getItem("kc_silent")||0); if(Date.now()-last<30*60e3) return false; sessionStorage.setItem("kc_silent",Date.now()); location.href=oauthUrl(true); return true; }
+let syncState="idle", syncErr="";
 function oauthReturn(){
   const h=location.hash.slice(1); if(!/(^|&)(access_token|error)=/.test(h)) return;
   const p=new URLSearchParams(h), saved=LS.get("kc_oauth",null); LS.del("kc_oauth");
   if(p.get("access_token")&&saved&&p.get("state")===saved.st){ LS.set("kc_token",{v:p.get("access_token"),exp:Date.now()+(+p.get("expires_in")||3600)*1000}); LS.set("kc_linked",true); }
   else if(/interaction_required|login_required|consent_required|account_selection_required/.test(p.get("error")||"")) syncState="needlogin";
-  else { syncState="err"; syncErr=p.get("error")==="access_denied"?"You didn't allow Drive access":"Google login failed"; }
+  else { syncState="err"; syncErr=p.get("error")==="access_denied"?"You didn't allow Google Drive":"Google sign-in failed"; }
   history.replaceState(null,"",REDIRECT+((saved&&saved.back)||"#today"));
 }
 async function g(url,opt={}){
@@ -185,286 +174,422 @@ async function findFile(fid){
   const j=await (await g(`${API}/files?q=${q}&fields=files(id)`)).json();
   return j.files&&j.files.length?j.files[0].id:null;
 }
-// merge per card: newer "upd" wins on both sides -> nothing is lost when both devices changed things offline
-function merge(remote){
-  let pulled=false, push=false;
-  const rm=new Map((remote.items||[]).map(c=>[c.id,c]));
-  for(const [id,r] of rm){ const l=S.all.get(id); if(!l||(r.upd||0)>(l.upd||0)){ S.all.set(id,r); pulled=true; } }
-  for(const [id,l] of S.all){ const r=rm.get(id); if(!r||(l.upd||0)>(r.upd||0)) push=true; }
-  if((remote.catsUpd||0)>S.catsUpd && remote.cats && remote.cats.length){ S.cats=remote.cats; S.catsUpd=remote.catsUpd; pulled=true; }
-  else if(S.catsUpd>(remote.catsUpd||0)) push=true;
-  return {pulled,push};
-}
-let syncing=false, lastPull=0, syncTimer=null;
-function syncSoon(){ clearTimeout(syncTimer); syncTimer=setTimeout(()=>sync(false),1500); }
-async function sync(interactive){
-  if(!linked()&&!interactive){ syncState="local"; renderStatus(); return; }
-  if(!navigator.onLine){ syncState="offline"; renderStatus(); return; }
-  if(!tok()){ if(interactive) return login(); syncState="needlogin"; renderStatus(); return; }
-  if(syncing) return; syncing=true; syncState="busy"; renderStatus(); lastPull=Date.now();
+let syncing=false, lastPull=0, syncTimer=null, meChecked=false;
+function syncSoon(){ clearTimeout(syncTimer); syncTimer=setTimeout(()=>sync(),1200); }
+async function sync(){
+  if(!linked()) return;
+  if(!navigator.onLine){ syncState="offline"; return statusChanged(); }
+  if(!tok()){ syncState="needlogin"; return statusChanged(); }
+  if(syncing) return; syncing=true; syncState="busy"; statusChanged(); lastPull=Date.now();
   try{
+    if(!meChecked){ // one account per device: switching account starts from that account's own data
+      const me=(await (await g(`${API}/about?fields=user(emailAddress,displayName,photoLink)`)).json()).user||{};
+      const owner=await DB.get("owner");
+      if(owner&&me.emailAddress&&owner!==me.emailAddress){ await DB.set("data",emptyData()); S=emptyData(); LS.set("kc_folder",null); U.queue=null; }
+      if(me.emailAddress) await DB.set("owner",me.emailAddress);
+      LS.set("kc_me",me); meChecked=true;
+    }
     let fid=await folderId(), fileId;
     try{ fileId=await findFile(fid); }catch(e){ if(e.notfound){ LS.set("kc_folder",null); fid=await folderId(); fileId=await findFile(fid); } else throw e; }
-    let res={pulled:false,push:true};
-    if(fileId){ const remote=await (await g(`${API}/files/${fileId}?alt=media`)).json(); res=merge(remote); }
-    if(res.pulled){ rebuild(); LS.set("kc_data",{items:[...S.all.values()],cats:S.cats,catsUpd:S.catsUpd}); }
-    if(res.push){
-      const body=JSON.stringify({app:"karticky",v:1,items:[...S.all.values()],cats:S.cats,catsUpd:S.catsUpd});
+    const remote=fileId?await (await g(`${API}/files/${fileId}?alt=media`)).json():null;
+    const local=await DB.get("data")||emptyData();
+    const merged=mergeData(local,remote);
+    if(sig(merged)!==sig(local)){ await DB.set("data",merged); S=merged; if(!busy()) render(); }
+    if(!remote||sig(merged)!==sig(remote)){
+      const body=JSON.stringify({app:"karticky",v:2,...merged});
       if(fileId) await g(`${UP}/files/${fileId}?uploadType=media`,{method:"PATCH",headers:{"Content-Type":"application/json"},body});
       else { const b="kc"+Math.random().toString(36).slice(2);
         await g(`${UP}/files?uploadType=multipart&fields=id`,{method:"POST",headers:{"Content-Type":"multipart/related; boundary="+b},
           body:`--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify({name:FILE,parents:[fid],mimeType:"application/json"})}\r\n--${b}\r\nContent-Type: application/json\r\n\r\n${body}\r\n--${b}--`}); }
     }
-    LS.set("kc_dirty",false); LS.set("kc_lastsync",Date.now()); syncState="ok";
-    if(res.pulled && !busyTyping()) render();
+    LS.set("kc_lastsync",Date.now()); syncState="ok";
   }catch(e){ if(e&&e.auth) syncState="needlogin"; else { syncState="err"; syncErr=(e&&e.message)||"Sync failed"; } }
-  syncing=false; renderStatus();
+  syncing=false; statusChanged();
 }
-const busyTyping=()=>{const a=document.activeElement;return a&&/INPUT|TEXTAREA/.test(a.tagName);};
-function statusText(){
-  if(!linked()) return {t:"Saved on this device only",k:"warn"};
-  const dirty=LS.get("kc_dirty",false);
-  return ({ok:{t:"Synced with Google Drive",k:"ok"},busy:{t:"Syncing…",k:""},offline:{t:dirty?"Offline — saved here, syncs when online":"Offline — works fine, syncs later",k:""},
-    needlogin:{t:"Drive: log in again to sync",k:"warn"},err:{t:syncErr||"Sync error",k:"warn"}}[syncState])||{t:dirty?"Waiting to sync":"Google Drive",k:""};
+function statusChanged(){ const el=document.getElementById("syncdot"); if(el){ const s=statusInfo(); el.className="dot "+s.k; el.title=s.t; } if(U.tab==="me"&&!busy()) render(); }
+function statusInfo(){ return ({ok:{t:"Synced",k:"ok"},busy:{t:"Syncing…",k:""},offline:{t:"Offline – saved on this device, syncs later",k:""},needlogin:{t:"Sign in again to sync",k:"warn"},err:{t:syncErr||"Sync error",k:"warn"}}[syncState])||{t:"",k:""}; }
+window.addEventListener("online",()=>sync());
+window.addEventListener("offline",()=>{syncState="offline";statusChanged();});
+document.addEventListener("visibilitychange",async()=>{ if(document.visibilityState!=="visible"||!linked()) return;
+  await reloadLocal();
+  if(!tok()&&navigator.onLine){ if(silentLogin()) return; }
+  if(Date.now()-lastPull>20000) sync(); });
+setInterval(()=>{ if(document.visibilityState==="visible"&&Date.now()-lastPull>110000) sync(); },120000);
+
+/* ================= local data ================= */
+let S=emptyData();
+const cats=()=>S.cats&&S.cats.length?S.cats:DEFAULT_CATS;
+const catOf=id=>cats().find(c=>c.id===id)||{id:"other",name:"Other",emoji:"✨",color:"#8b8d98"};
+const live=()=>S.items.filter(c=>!c.del);
+let writing=Promise.resolve();
+function persist(){ // merge with what the notification may have changed meanwhile, then save + sync
+  writing=writing.then(async()=>{ const cur=await DB.get("data"); S=mergeData(cur,S); await DB.set("data",S); }).catch(()=>{});
+  syncSoon(); return writing;
 }
-function renderStatus(){ const el=document.getElementById("syncline"); if(el){ const s=statusText(); el.textContent=s.t; el.className="syncline "+s.k; }
-  if(U.tab==="how" && !busyTyping()) render(); }
-window.addEventListener("online",()=>sync(false));
-window.addEventListener("offline",()=>{syncState="offline";renderStatus();});
-document.addEventListener("visibilitychange",()=>{ if(document.visibilityState!=="visible") return;
-  if(U.tab==="today") render(); // a new day may have started
-  if(linked()&&!tok()&&navigator.onLine){ silentLogin(); return; }
-  if(Date.now()-lastPull>20000) sync(false); });
-setInterval(()=>{ if(document.visibilityState==="visible"&&Date.now()-lastPull>110000) sync(false); },120000);
+function saveCard(c){ c.upd=Date.now(); S.items=S.items.filter(x=>x.id!==c.id).concat([c]); return persist(); }
+function deleteCard(id){ S.items=S.items.filter(x=>x.id!==id).concat([{id,del:true,upd:Date.now()}]); return persist(); }
+function saveCats(){ S.catsUpd=Date.now(); return persist(); }
+function savePush(){ S.pushUpd=Date.now(); return persist(); }
+async function reloadLocal(){ const cur=await DB.get("data"); const m=mergeData(S,cur); if(sig(m)!==sig(S)){ S=m; if(!busy()) render(); } }
+navigator.serviceWorker&&navigator.serviceWorker.addEventListener("message",e=>{ if(e.data&&e.data.reload) reloadLocal(); });
 
-function downloadBackup(){
-  const blob=new Blob([JSON.stringify({app:"karticky",v:1,items:[...S.all.values()],cats:S.cats,catsUpd:S.catsUpd},null,1)],{type:"application/json"});
-  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`karticky-backup-${today()}.json`; document.body.appendChild(a); a.click(); a.remove();
-}
-function importBackup(file){
-  const r=new FileReader(); r.onload=()=>{ try{ const j=JSON.parse(r.result); if(!j.items) throw 0; merge(j); rebuild(); persist(); render(); toast("Backup loaded"); }catch(e){ toast("That file isn't a Tip Cards backup"); } }; r.readAsText(file);
-}
+/* ================= auto category from the words you type (EN / CZ / PL) ================= */
+const KEYS={
+  openers:["hi ","hey","hello","excuse me","nice to meet","approach","introduce","first time here","ahoj","čau","cześć","dobrý den","goodbye","leave","grab a drink","gotta go"],
+  flirt:["cute","beautiful","gorgeous","date","kiss","flirt","attractive","sexy","your number","girlfriend","boyfriend","crush","rande","randka","holk","dziewczyn","pretty"],
+  banter:["joke","funny","tease","teasing","haha","lol","sarcas","laugh","troll","comeback","roast"],
+  deep:["what makes you","dream","meaning","proud","biggest","favorite","favourite","looking forward","why do you","passion","what would you","if you could"],
+  stories:["story","stories","happened","when i was","once ","punchline","twist"],
+  listen:["listen","sounds like","tell me more","feel","understand","empath","so you","interrupt","follow-up","follow up"],
+  confidence:["confiden","mindset","fear","rejection","believe","posture","eye contact","nervous","anxious","shy","sebevědom","pewnoś","voice","slow down"],
+  texting:["text","message","reply","emoji","dm","whatsapp","instagram","snap","messenger","zpráv","wiadomo","sms"],
+  work:["boss","meeting","salary","negotiat","client","customer","colleague","price","deal","interview","manager","raise","šéf","zákazník","klient","szef"],
+  books:["book","chapter","author","kniha","książk","podcast","video said","according to"]
+};
+function guessCat(text){ const t=" "+text.toLowerCase()+" "; let best=null,score=0;
+  for(const [id,words] of Object.entries(KEYS)){ const s=words.reduce((n,w)=>n+(t.includes(w)?1:0),0); if(s>score){score=s;best=id;} }
+  if(!best&&text.trim().endsWith("?")) best="deep";
+  return best; }
 
-/* ---------- review logic ---------- */
-function dueCards(){
-  const t=today();
-  return [...S.cards.values()].filter(c=>c.due<=t).sort((a,b)=> a.due<b.due?-1:a.due>b.due?1:(a.created<b.created?-1:1));
-}
-const isCheck = c => (c.reads||0)+1 >= READS_BEFORE_CHECK(c.level);
+/* ================= starter pack (original lines, optional) ================= */
+const STARTER=[
+ ["openers","I had to come say hi – you look like the person who knows the best place to eat around here.","Starting a chat with a stranger"],
+ ["openers","What's the story behind that?","Something they wear or carry stands out"],
+ ["openers","How do you know everyone here?","Party where you only know the host"],
+ ["openers","I'm going to grab a drink, but I'm really glad we talked.","Leaving a conversation without it getting awkward"],
+ ["flirt","I'm having a really good time with you.","The date is going well – say it out loud"],
+ ["flirt","Careful, I might start liking you.","She teases you and you want to tease back"],
+ ["banter","Yes, and on weekends I also steal candy from kids.","Someone teases you – agree and exaggerate"],
+ ["banter","Okay, you've officially lost music privileges.","Playful revenge after a small disagreement"],
+ ["deep","What's something you're looking forward to right now?","Getting past small talk"],
+ ["deep","What did you want to be as a kid – and how close did you get?","When the talk feels flat"],
+ ["deep","What's the best thing that happened to you this week?","Asking a better 'how are you'"],
+ ["stories","Start in the middle: \"So I'm standing in the rain, holding a goat…\"","Starting a story"],
+ ["stories","Situation – problem – twist. Stop talking after the twist.","Telling any story"],
+ ["listen","Wait, go back – what happened then?","Showing you really listen"],
+ ["listen","It sounds like that really got to you.","Someone vents about a problem"],
+ ["listen","Ask one follow-up question before telling your own story.","Tip"],
+ ["confidence","Slow down. A pause looks calm, not stuck.","Tip – when you feel rushed"],
+ ["confidence","Rejection is information, not a verdict.","Mindset"],
+ ["texting","Thursday 7pm, coffee at the corner place?","Moving from chatting to meeting – text the plan"],
+ ["texting","Reply to the feeling, not just the words.","Tip"],
+ ["work","What would need to be true for this to work for you?","Negotiation is stuck"],
+ ["work","Just to make sure – you need X by Friday, right?","Ending a meeting with clarity"],
+ ["books","Use their name once, early. People love hearing it.","Idea from 'How to Win Friends'"],
+];
+function addStarter(){ const t=today(); STARTER.forEach(([cat,text,cue],i)=>{ S.items.push({id:"st"+i+"_"+Date.now().toString(36),cat,text,cue,note:"",level:1,due:t,created:new Date().toISOString(),starter:true,upd:Date.now()}); }); persist(); }
 
-function markRead(c){
-  const n={...c, reads:(c.reads||0)+1, lastSeen:today(), seen:(c.seen||0)+1, due:addDays(today(), LEVELS[c.level].days)};
-  saveCard(n);
-}
-function answer(c, a){ // a: "yes" | "unsure" | "no"
-  let lvl=c.level;
-  if(a==="yes") lvl=Math.min(LEVELS.length-1,lvl+1);
-  if(a==="unsure") lvl=Math.max(0,lvl-1);
-  if(a==="no") lvl=Math.max(0,lvl-2);
-  const n={...c, level:lvl, reads:0, lastSeen:today(), seen:(c.seen||0)+1, lastAnswer:a, due:addDays(today(), LEVELS[lvl].days)};
-  saveCard(n);
-  const moved = lvl>c.level?"↓ less often: ":lvl<c.level?"↑ more often: ":"Stays: ";
-  toast(moved+LEVELS[lvl].label);
-}
+/* ================= UI state ================= */
+const TABS=["today","lib","add","set","me"];
+const U={tab:"today",queue:null,retry:new Set(),practice:false,done:0,undo:null,
+  add:{text:"",cue:"",note:"",cat:null,auto:true,intent:1,more:false},
+  q:"",filter:null,open:null,edit:null,confirm:null,newCat:false,confirmOut:false};
+const esc=s=>String(s??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+const linkify=s=>esc(s).replace(/(https?:\/\/[^\s<]+)/g,'<a class="link" href="$1" target="_blank" rel="noopener">link ↗</a>');
+const tag=c=>`<span class="tag" style="color:${c.color}">${c.emoji} ${esc(c.name)}</span>`;
+const levels=(l,col)=>`<span class="lv" style="--c:${col}">${LEVELS.map((_,i)=>`<i class="${i<=l?"f":""}"></i>`).join("")}</span>`;
+const nice=s=>{ if(!s) return ""; const t=today(); if(s<=t) return "today"; if(s===addDays(t,1)) return "tomorrow"; const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d).toLocaleDateString(undefined,{day:"numeric",month:"short"}); };
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),1900); }
+const busy=()=>{ const a=document.activeElement; return (a&&/INPUT|TEXTAREA/.test(a.tagName))||dragging; };
 
-/* ---------- UI state ---------- */
-const U = { tab: (["today","add","all","how"].includes(location.hash.slice(1))?location.hash.slice(1):"today"),
-  revealed:false, doneToday:0,
-  form:{cat:null,text:"",cue:"",note:"",level:0}, newCat:false, filter:null, q:"", open:null, edit:null, confirmDel:null };
-
-const esc = s => String(s??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
-const linkify = s => esc(s).replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
-const catColor = name => { const c=S.cats.find(x=>x.name===name); return `var(--${c?c.color:"black"})`; };
-const chip = (name,on,attrs="") => `<button class="chip ${on?"on":""}" ${attrs} style="${on?`background:${catColor(name)}`:""}"><span class="dot" style="background:${on?"#fff":catColor(name)}"></span>${esc(name)}</button>`;
-const ladder = l => `<div class="ladder">${LEVELS.map((_,i)=>`<i class="${i<=l?"f":""}"></i>`).join("")}</div>`;
-
-function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),1800); }
-
-/* ---------- views ---------- */
-function viewToday(){
-  const due=dueCards();
-  const total=due.length+U.doneToday;
-  let h=`<h1>Today</h1><p class="sub">${due.length? `${due.length} card${due.length>1?"s":""} to go` : "All read for today"} · <span id="syncline" class="syncline ${statusText().k}">${statusText().t}</span></p>`;
-  if(total) h+=`<div class="progress"><div style="width:${Math.round(U.doneToday/total*100)}%"></div></div>`;
-  if(!due.length){
-    const next=[...S.cards.values()].sort((a,b)=>a.due<b.due?-1:1)[0];
-    h+=`<div class="card empty"><div class="big">${S.cards.size?"Done ✓":"No cards yet"}</div>
-      <p class="sub" style="margin-top:8px">${S.cards.size? (next?`Next card ${nice(next.due)}.`:"") : "Heard a good line on YouTube? Add it."}</p>
-      <div class="btns" style="max-width:260px;margin:14px auto 0"><button class="btn main" data-go="add">Add a card</button></div></div>`;
-    return h;
-  }
-  const c=due[0], check=isCheck(c);
-  const hasCue=!!(c.cue&&c.cue.trim());
-  const hidden = (check || hasCue) && !U.revealed;
-  h+=`<div class="card">
-    <div class="between">${chip(c.cat,true,"disabled")}<span class="freq">${LEVELS[c.level].label}</span></div>`;
-  if(hasCue) h+=`<div class="cue"><small>Situation</small>${esc(c.cue)}</div>`;
-  if(hidden){
-    if(!hasCue){ const w=c.text.trim().split(/\s+/); h+=`<div class="hint">${esc(w.slice(0,3).join(" "))}${w.length>3?" …":""}</div>`; }
-    h+=`${check?`<div class="ask">Do you remember it? Think, then reveal.</div>`:""}
-      <div class="btns"><button class="btn main" id="reveal">Show</button></div>`;
-  } else {
-    h+=`<div class="bigtext">${esc(c.text)}</div>`;
-    if(c.note) h+=`<div class="note">${linkify(c.note)}</div>`;
-    if(check){
-      h+=`<div class="ask">Did you remember it?</div>
-      <div class="btns"><button class="btn yes" data-ans="yes">Yes</button><button class="btn mid" data-ans="unsure">Not sure</button><button class="btn no" data-ans="no">No</button></div>`;
-    } else {
-      h+=`<div class="btns"><button class="btn main" id="read">Read ✓</button></div>
-      <p class="status">Read it twice, or say it out loud once. Check after ${READS_BEFORE_CHECK(c.level)-(c.reads||0)-1} more read${READS_BEFORE_CHECK(c.level)-(c.reads||0)-1===1?"":"s"}.</p>`;
-    }
-  }
-  h+=`</div>`;
-  return h;
-}
-
-function formFields(f, prefix){
-  return `
-  <label class="lbl">Category</label>
-  <div class="row">${S.cats.map(c=>chip(c.name,f.cat===c.name,`data-${prefix}cat="${esc(c.name)}"`)).join("")}
-    ${prefix==="f"?`<button class="chip" id="newcatbtn">+ New</button>`:""}</div>
-  ${prefix==="f"&&U.newCat?`<div class="row" style="margin-top:8px;flex-wrap:nowrap"><input type="text" id="newcat" placeholder="New category name"><button class="btn small main" id="newcatsave">Add</button></div>`:""}
-  <label class="lbl">The line / tip</label>
-  <textarea rows="3" data-${prefix}f="text" placeholder="e.g. “I'm glad I came over to talk to you.”">${esc(f.text)}</textarea>
-  <label class="lbl">Situation <span>— optional, turns it into a quiz card</span></label>
-  <textarea rows="2" data-${prefix}f="cue" placeholder="e.g. You want to end a chat but keep the door open">${esc(f.cue)}</textarea>
-  <label class="lbl">Source / note <span>— optional</span></label>
-  <input type="text" data-${prefix}f="note" value="${esc(f.note)}" placeholder="YouTube link, who said it…">
-  <label class="lbl">How often</label>
-  ${prefix==="f"
-    ? `<div class="seg">${[0,1,2].map(l=>`<button data-flevel="${l}" class="${f.level===l?"on":""}">${["7/7","3/7","1/7"][l]}</button>`).join("")}</div>`
-    : `<div class="seg" style="flex-wrap:wrap">${LEVELS.map((L,l)=>`<button data-elevel="${l}" class="${f.level===l?"on":""}" style="flex:1 0 22%">${L.label.replace(" a "," / ").replace("Every 3 months","3 mo")}</button>`).join("")}</div>`}`;
-}
-
-function viewAdd(){
-  const f=U.form;
-  return `<h1>New card</h1><p class="sub">Write it the way you'd actually say it.</p>
-  <div class="card">${formFields(f,"f")}
-    <div class="btns"><button class="btn main" id="save" ${f.text.trim()&&f.cat?"":"disabled style='opacity:.45'"}>Save card</button></div>
-    ${!f.cat?`<p class="status">Pick a category first.</p>`:""}
+/* ================= views ================= */
+function vLogin(){
+  return `<div class="login">
+    <img class="logo" src="icon-192.png" alt="">
+    <h1>Tip Cards</h1>
+    <p class="sub">Lines worth remembering.<br>One swipe at a time.</p>
+    <button class="gbtn" id="glogin"><svg width="22" height="22" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>Continue with Google</button>
+    ${syncState==="err"?`<p class="fine" style="color:var(--again)">${esc(syncErr)}</p>`:""}
+    <p class="fine">Your cards are saved in <b>your own Google Drive</b> (a folder “Karticky”).<br>Nobody else can see them – not even this website.<br>Sign in on your phone and PC with the same account and you see the same cards.</p>
   </div>`;
 }
 
-function viewAll(){
-  let cards=[...S.cards.values()];
-  if(U.filter) cards=cards.filter(c=>c.cat===U.filter);
-  if(U.q) { const q=U.q.toLowerCase(); cards=cards.filter(c=>(c.text+" "+(c.cue||"")+" "+(c.note||"")).toLowerCase().includes(q)); }
-  cards.sort((a,b)=>a.created<b.created?1:-1);
-  const counts={}; [...S.cards.values()].forEach(c=>counts[c.cat]=(counts[c.cat]||0)+1);
-  let h=`<h1>Cards</h1><p class="sub">${S.cards.size} total</p>
-  <div class="row" style="margin:0 2px 10px">${chip("All",!U.filter,`data-filter=""`).replace(catColor("All"),"var(--ink)")}${S.cats.map(c=>chip(c.name+(counts[c.name]?` ${counts[c.name]}`:""),U.filter===c.name,`data-filter="${esc(c.name)}"`).replace(/var\(--black\)/g,catColor(c.name))).join("")}</div>
-  <input type="text" id="search" placeholder="Search…" value="${esc(U.q)}" style="margin-bottom:12px;background:var(--card)">
-  <div class="list">`;
-  if(!cards.length) h+=`<div class="card empty"><p class="sub">Nothing here yet.</p></div>`;
-  for(const c of cards){
-    if(U.open===c.id && U.edit){
-      h+=`<div class="card">${formFields(U.edit,"e")}
-        <div class="btns"><button class="btn main" id="esave">Save</button><button class="btn" id="ecancel">Cancel</button></div>
-        ${U.confirmDel===c.id
-          ? `<div class="inline-confirm"><b>Delete this card for good?</b><div class="btns"><button class="btn no" id="edelyes">Delete</button><button class="btn" id="edelno">Keep</button></div></div>`
-          : `<div class="btns"><button class="btn small" id="edel" style="color:var(--red)">Delete card</button><button class="btn small" id="enow">Show it today</button></div>`}
+function buildQueue(){ U.queue=dueCards(S.items).map(c=>c.id); U.retry=new Set(); U.done=0; U.practice=false; }
+function currentCards(){
+  if(!U.queue) buildQueue();
+  const t=today();
+  U.queue=U.queue.filter(id=>{ const c=S.items.find(x=>x.id===id); return c&&!c.del&&(U.practice||c.due<=t||U.retry.has(id)); });
+  return U.queue.map(id=>S.items.find(x=>x.id===id));
+}
+function vToday(){
+  const list=currentCards(), s=statusInfo();
+  let h=`<div class="top"><div><h1>Today</h1><p class="sub"><span id="syncdot" class="dot ${s.k}" title="${esc(s.t)}"></span>${list.length?`${list.length} card${list.length>1?"s":""} left${U.practice?" · practice":""}`:"All done"}</p></div></div>`;
+  if(!list.length){
+    const all=live(), known=all.filter(c=>(c.level||0)>=3).length;
+    const next=all.slice().sort((a,b)=>a.due<b.due?-1:1)[0];
+    h+=`<div class="panel done"><div class="big">${all.length?"🎉":"🃏"}</div><h2>${all.length?"You're done for today":"No cards yet"}</h2>
+      <p class="muted">${all.length?(next?`Next card comes ${nice(next.due)}.`:""):"Add a line you heard today – or start with 23 good ones."}</p>
+      ${all.length?`<div class="stats"><div class="stat"><b>${all.length}</b><span>Cards</span></div><div class="stat"><b>${U.done}</b><span>Swiped today</span></div><div class="stat"><b>${known}</b><span>Know well</span></div></div>
+      <div class="row"><button class="btn" id="practice">Practice more</button><button class="btn main" data-go="add">Add a card</button></div>`
+      :`<div class="row" style="flex-direction:column"><button class="btn main full" data-go="add">Add my first card</button><button class="btn full" id="starter">Add 23 starter lines</button></div>`}
+    </div>`;
+    if(U.undo) h+=`<div class="actions"><button class="round u" id="undo" title="Undo">↶</button></div>`;
+    return h;
+  }
+  h+=`<div class="deck" id="deck">`;
+  list.slice(0,3).reverse().forEach((c,i,arr)=>{ const pos=arr.length-1-i; h+=cardHTML(c,pos); });
+  h+=`</div><div class="actions"><button class="round a" id="again" title="Not yet (←)">✕</button>${U.undo?`<button class="round u" id="undo" title="Undo">↶</button>`:""}<button class="round k" id="know" title="I know it (→)">✓</button></div>
+  <p class="hintrow">Swipe right if you know it · left if not yet${matchMedia("(pointer:fine)").matches?" · or use ← →":""}</p>`;
+  return h;
+}
+function cardHTML(c,pos){
+  const cat=catOf(c.cat), hasCue=!!(c.cue&&c.cue.trim()), hidden=hasCue&&!(pos===0&&U.revealed);
+  return `<div class="tc ${pos===1?"back1":pos===2?"back2":""}" ${pos===0?'id="top"':""} data-id="${c.id}">
+    <div class="band" style="background:${cat.color}"></div>
+    <div class="head">${tag(cat)}<span class="muted" style="font-size:13px">${LEVEL_LABEL[c.level||0]}</span></div>
+    <div class="body">
+      ${hasCue?`<div class="cue"><b>When</b>${esc(c.cue)}</div>`:""}
+      ${hidden?`<div class="reveal">What would you say?<br><span style="font-size:13px">tap to see the line</span></div>`:`<div class="line ${c.text.length>140?"long":""}">${esc(c.text)}</div>`}
+      ${!hidden&&c.note?`<div class="note">${linkify(c.note)}</div>`:""}
+    </div>
+    <div class="foot"><span>${c.seen?`seen ${c.seen}×`:"new"}</span><span>${c.last==="know"?"✓ last time":c.last==="again"?"✕ last time":""}</span></div>
+    <div class="stamp k" id="sk">KNOW</div><div class="stamp a" id="sa">AGAIN</div>
+  </div>`;
+}
+
+function vAdd(){
+  const a=U.add, picked=a.cat;
+  return `<div class="top"><div><h1>New card</h1><p class="sub">Write it the way you'd say it.</p></div></div>
+  ${a.shared?`<div class="shared">From: ${linkify(a.shared)}</div>`:""}
+  <textarea class="hero" id="atext" placeholder="What did you hear?&#10;e.g. “What's the story behind that?”">${esc(a.text)}</textarea>
+  <div class="lab"><span>Category</span>${a.auto&&picked?`<span>✨ picked for you</span>`:""}</div>
+  <div class="chips scroll">${cats().map(c=>`<button class="chip ${picked===c.id?"on":""}" style="--c:${c.color}" data-acat="${c.id}">${c.emoji} ${esc(c.name)}</button>`).join("")}</div>
+  <div class="lab"><span>How much do you want it?</span></div>
+  <div class="intent">${INTENTS.map((t,i)=>`<button class="${a.intent===i?"on":""}" data-intent="${i}"><span>${t.emoji}</span>${t.name}</button>`).join("")}</div>
+  ${a.more||a.cue||a.note?`
+    <div class="lab"><span>When would you use it? <span style="text-transform:none;font-weight:500">(makes it a quiz card)</span></span></div>
+    <input type="text" id="acue" value="${esc(a.cue)}" placeholder="e.g. She teases me about my shoes">
+    <div class="lab"><span>Source</span></div>
+    <input type="text" id="anote" value="${esc(a.note)}" placeholder="YouTube link, who said it…">`
+  :`<button class="more" id="amore">+ When would you use it? / source</button>`}
+  <div class="savebar"><button class="btn main full" id="asave" ${a.text.trim()?"":"disabled style='opacity:.4'"}>Save card</button></div>`;
+}
+
+function vLib(){
+  let list=live();
+  const counts={}; list.forEach(c=>counts[c.cat]=(counts[c.cat]||0)+1);
+  if(U.filter) list=list.filter(c=>c.cat===U.filter);
+  if(U.q){ const q=U.q.toLowerCase(); list=list.filter(c=>(c.text+" "+(c.cue||"")+" "+(c.note||"")).toLowerCase().includes(q)); }
+  list.sort((a,b)=>(b.created||"")<(a.created||"")?-1:1);
+  let h=`<div class="top"><div><h1>Library</h1><p class="sub">${live().length} cards</p></div></div>
+  <input type="text" class="search" id="search" placeholder="Search your lines…" value="${esc(U.q)}">
+  <div class="chips scroll" style="margin-bottom:12px"><button class="chip ${!U.filter?"on":""}" data-filter="">All</button>${cats().filter(c=>counts[c.id]).map(c=>`<button class="chip ${U.filter===c.id?"on":""}" style="--c:${c.color}" data-filter="${c.id}">${c.emoji} ${esc(c.name)} <span class="muted">${counts[c.id]}</span></button>`).join("")}</div>`;
+  if(!list.length) h+=`<div class="panel done"><p class="muted">${live().length?"Nothing matches.":"Your cards will show up here."}</p></div>`;
+  for(const c of list){
+    const cat=catOf(c.cat);
+    if(U.open===c.id&&U.edit){ const e=U.edit;
+      h+=`<div class="panel">
+        <textarea id="etext" rows="3">${esc(e.text)}</textarea>
+        <div class="lab"><span>When would you use it?</span></div><input type="text" id="ecue" value="${esc(e.cue||"")}" placeholder="optional">
+        <div class="lab"><span>Source</span></div><input type="text" id="enote" value="${esc(e.note||"")}" placeholder="optional">
+        <div class="lab"><span>Category</span></div>
+        <div class="chips">${cats().map(x=>`<button class="chip ${e.cat===x.id?"on":""}" style="--c:${x.color}" data-ecat="${x.id}">${x.emoji} ${esc(x.name)}</button>`).join("")}</div>
+        <div class="lab"><span>Comes back</span><span>${LEVEL_LABEL[e.level||0]}</span></div>
+        <input type="range" id="elevel" min="0" max="7" value="${e.level||0}" style="width:100%">
+        <div class="row"><button class="btn main" id="esave">Save</button><button class="btn" id="ecancel">Cancel</button></div>
+        ${U.confirm===c.id?`<div class="confirm"><b>Delete this card for good?</b><div class="row"><button class="btn" id="edelyes" style="color:#e5484d">Delete</button><button class="btn" id="edelno">Keep</button></div></div>`
+          :`<div class="row"><button class="btn small" id="enow">Show it today</button><button class="btn small" id="edel" style="color:#e5484d">Delete</button></div>`}
       </div>`;
     } else {
-      h+=`<div class="card item" data-open="${c.id}">
-        <div class="between"><span class="chip"><span class="dot" style="background:${catColor(c.cat)}"></span>${esc(c.cat)}</span><span class="freq">${LEVELS[c.level].label}</span></div>
-        <div class="t">${esc(c.text)}</div>
-        <div class="meta">${c.cue?`Situation: ${esc(c.cue)} · `:""}Next ${nice(c.due)}${c.lastAnswer?` · last: ${{yes:"remembered",unsure:"not sure",no:"forgot"}[c.lastAnswer]}`:""}</div>
-        ${ladder(c.level)}
-      </div>`;
+      h+=`<div class="item" style="--c:${cat.color}" data-open="${c.id}"><div class="t">${esc(c.text)}</div>
+        <div class="m"><span>${cat.emoji} ${c.cue?esc(c.cue):esc(cat.name)}</span><span>${levels(c.level||0,cat.color)} ${nice(c.due)}</span></div></div>`;
     }
   }
-  h+=`</div>`;
   return h;
 }
 
-function viewHow(){
-  return `<h1>How it works</h1><p class="sub">Simple on purpose.</p>
-  <div class="card howto"><div class="between"><b style="font-size:18px">Sync</b><span class="syncline ${statusText().k}">${statusText().t}</span></div>
-    <p>Your cards live on this device, so the app works without internet. With Google Drive connected they also sync between your phone and PC (a folder “Karticky” on your Drive; the app can't see anything else there).</p>
-    ${!linked()?`<div class="btns"><button class="btn main" id="glogin">Connect Google Drive</button></div>`
-      :`<div class="btns"><button class="btn main" id="gsync">Sync now</button><button class="btn" id="gout">Disconnect</button></div>
-        ${LS.get("kc_lastsync",0)?`<p class="status">Last sync ${new Date(LS.get("kc_lastsync",0)).toLocaleString()}</p>`:""}`}
-    <div class="btns"><button class="btn small" id="bdown">Download backup</button><label class="btn small filebtn">Load backup<input type="file" id="bload" accept="application/json,.json" hidden></label></div>
+/* ---------- notifications ---------- */
+const b64u=buf=>btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+const unb64u=s=>Uint8Array.from(atob(s.replace(/-/g,"+").replace(/_/g,"/")+"===".slice((s.length+3)%4)),c=>c.charCodeAt(0));
+let mySub=null;
+async function refreshSub(){ try{ const r=await navigator.serviceWorker.ready; mySub=await r.pushManager.getSubscription(); }catch(e){ mySub=null; } }
+async function turnOnPush(){
+  if(!("Notification" in window)||!("serviceWorker" in navigator)) return toast("This browser can't show notifications");
+  const perm=await Notification.requestPermission(); if(perm!=="granted") return toast("Notifications are blocked for this site");
+  let P=S.push||{};
+  if(!P.publicKey){ const kp=await crypto.subtle.generateKey({name:"ECDSA",namedCurve:"P-256"},true,["sign","verify"]);
+    P={...P,publicKey:b64u(await crypto.subtle.exportKey("raw",kp.publicKey)),privateKey:(await crypto.subtle.exportKey("jwk",kp.privateKey)).d,subs:P.subs||[]}; }
+  const reg=await navigator.serviceWorker.ready;
+  let sub=await reg.pushManager.getSubscription();
+  if(!sub) sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:unb64u(P.publicKey)});
+  const j=sub.toJSON(); const subs=(P.subs||[]).filter(s=>s.endpoint!==j.endpoint); subs.push({endpoint:j.endpoint,keys:j.keys,device:/Android|iPhone/i.test(navigator.userAgent)?"phone":"computer"});
+  S.push={...P,subs,secretSet:false}; mySub=sub; await savePush(); render(); toast("Notifications on for this device");
+}
+async function turnOffPush(){
+  await refreshSub(); if(mySub){ const ep=mySub.endpoint; try{ await mySub.unsubscribe(); }catch(e){} S.push={...S.push,subs:(S.push.subs||[]).filter(s=>s.endpoint!==ep),secretSet:false}; await savePush(); }
+  mySub=null; render(); toast("Notifications off for this device");
+}
+const pushConfig=()=>JSON.stringify({subject:"https://lasjosef.github.io/karticky/",publicKey:S.push.publicKey,privateKey:S.push.privateKey,subs:S.push.subs});
+function vSet(){
+  const P=S.push||{}, subs=P.subs||[], here=!!mySub, supported=("Notification" in window)&&("serviceWorker" in navigator)&&("PushManager" in window);
+  let h=`<div class="top"><div><h1>Notifications</h1><p class="sub">A card comes to you – no need to open the app.</p></div></div>
+  <div class="panel set">
+    <p>Twice a day (around <b>8:20</b> and <b>18:40</b>) your phone shows one card that's due. Read it right in the notification and tap <b>✓ Know it</b> or <b>✕ Not yet</b>. Nothing due? Then it brings back an older card so it stays fresh. Max 2 a day – no spam.</p>
   </div>
-  <div class="card howto">
-    <p><b>1. Add</b> a line or tip, pick a category and how often you want it: 7/7, 3/7 or 1/7 a week.</p>
-    <p><b>2. Today</b> shows only the cards due today. Read it, tap <b>Read ✓</b>.</p>
-    <p><b>3. Check.</b> On every 3rd read (or every read once a card is monthly or slower) the line is hidden and you get asked: <i>Do you remember it?</i></p>
-    <p>&nbsp;&nbsp;Yes → one step less often &nbsp;·&nbsp; Not sure → one step more often &nbsp;·&nbsp; No → two steps more often.</p>
-    <p><b>Tip:</b> fill in “Situation” and the card becomes a quiz — you see the situation and try to say the line before revealing it. That sticks much better than just re-reading.</p>
-    <table>${LEVELS.map((L,i)=>`<tr><td>Step ${i+1}</td><td>${L.label}</td></tr>`).join("")}</table>
-    <p style="margin-top:10px;color:var(--muted)">A card never switches off — the slowest step is once a year.</p>
+  <div class="panel set"><h3>Setup</h3>
+    <div class="step ${here?"ok":""}"><span class="n">${here?"✓":"1"}</span><div><b>Turn on for this device</b><br><span class="muted">Do it on your phone.</span>
+      ${!supported?`<p class="muted">This browser can't receive notifications. On Android use Chrome and add the app to your home screen.</p>`
+        :here?`<div class="row"><button class="btn small" id="ptest">Show a test card</button><button class="btn small" id="poff">Turn off here</button></div>`
+        :`<div class="row"><button class="btn main small" id="pon">Turn on notifications</button></div>`}</div></div>
+    <div class="step ${P.secretSet?"ok":""}"><span class="n">${P.secretSet?"✓":"2"}</span><div><b>Connect the alarm clock</b> <span class="muted">(once)</span><br>
+      ${!subs.length?`<span class="muted">After step 1.</span>`
+       :P.secretSet?`<span class="muted">Done. Cards arrive on ${subs.length} device${subs.length>1?"s":""}.</span> <button class="link" id="pundo" style="font-size:14px">redo</button>`
+       :`<span class="muted">GitHub sends the wake-up signal on schedule. It needs your notification key – you can do this from the PC.</span>
+        <div class="row"><button class="btn small" id="pcopy">1 · Copy key</button><a class="btn small" href="https://github.com/${REPO}/settings/secrets/actions/new" target="_blank" rel="noopener">2 · Open GitHub</a></div>
+        <p class="muted" style="font-size:14px">On GitHub: Name <code>PUSH_CONFIG</code> → paste into Secret → <b>Add secret</b>.</p>
+        <div class="row"><button class="btn main small" id="pdone">3 · I added it</button></div>`}
+    </div></div>
+  </div>`;
+  return h;
+}
+function vMe(){
+  const me=LS.get("kc_me",{})||{}, s=statusInfo(), last=LS.get("kc_lastsync",0);
+  return `<div class="top"><div><h1>Me</h1></div></div>
+  <div class="panel set"><div class="me">${me.photoLink?`<img src="${esc(me.photoLink)}" alt="" referrerpolicy="no-referrer">`:`<div class="av">${esc((me.displayName||"?")[0])}</div>`}<div><b>${esc(me.displayName||"Signed in")}</b><br><span class="muted">${esc(me.emailAddress||"")}</span></div></div>
+    <p class="muted" style="margin-top:12px"><span class="dot ${s.k}"></span>${esc(s.t||"")} ${last?`· last ${new Date(last).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}`:""}</p>
+    <div class="row"><button class="btn small" id="syncnow">Sync now</button>${syncState==="needlogin"?`<button class="btn small main" id="relogin">Sign in again</button>`:""}</div>
+    ${U.confirmOut?`<div class="confirm">Sign out? Your cards stay safe in Google Drive and are removed from this device.<div class="row"><button class="btn" id="outyes">Sign out</button><button class="btn" id="outno">Cancel</button></div></div>`
+      :`<div class="row"><button class="btn small" id="signout">Sign out</button></div>`}
   </div>
-`;
+  <div class="panel set"><h3>How it works</h3>
+    <p>👉 <b>Swipe right</b> = I know it → it comes back later and later (daily → weekly → monthly → yearly). It never disappears.</p>
+    <p>👈 <b>Swipe left</b> = not yet → it comes back tomorrow, more often.</p>
+    <p>💡 Add a <b>“When would you use it?”</b> and the card becomes a quiz: you see the situation, think of the line, tap to check.</p>
+    <p>📤 On your phone, <b>share a YouTube video</b> to Tip Cards and the link is saved with your new card.</p>
+  </div>
+  <div class="panel set"><h3>Extras</h3>
+    ${live().some(c=>c.starter)?"":`<div class="row"><button class="btn small" id="starter">Add 23 starter lines</button></div>`}
+    <div class="row"><button class="btn small" id="bdown">Download backup</button><label class="btn small" style="cursor:pointer">Load backup<input type="file" id="bload" accept=".json,application/json" hidden></label></div>
+  </div>`;
 }
 
-/* ---------- render + events ---------- */
+/* ================= render ================= */
 function render(){
-  const app=document.getElementById("app");
-  const views={today:viewToday,add:viewAdd,all:viewAll,how:viewHow};
-  let h=views[U.tab]();
-  const active=document.activeElement, aid=active&&(active.id||active.dataset.ff||active.dataset.ef), pos=active&&active.selectionStart;
-  app.innerHTML=h;
-  if(aid){ const el=document.getElementById(aid)||app.querySelector(`[data-ff="${aid}"],[data-ef="${aid}"]`); if(el){ el.focus(); try{el.setSelectionRange(pos,pos);}catch(e){} } }
-  document.querySelectorAll("nav button").forEach(b=>{ b.classList.toggle("on",b.dataset.tab===U.tab); });
-  const n=dueCards().length, tb=document.querySelector('nav [data-tab="today"]');
-  tb.querySelector(".badge")?.remove(); if(n&&U.tab!=="today") tb.insertAdjacentHTML("beforeend",`<span class="badge">${n}</span>`);
+  const app=document.getElementById("app"), nav=document.getElementById("nav");
+  if(!linked()){ nav.classList.add("hidden"); app.innerHTML=vLogin(); return; }
+  nav.classList.remove("hidden");
+  const V={today:vToday,lib:vLib,add:vAdd,set:vSet,me:vMe};
+  const a=document.activeElement, aid=a&&a.id, pos=a&&a.selectionStart;
+  app.innerHTML=V[U.tab]();
+  if(aid){ const el=document.getElementById(aid); if(el&&el.focus){ el.focus(); try{ el.setSelectionRange(pos,pos);}catch(e){} } }
+  nav.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.tab===U.tab));
+  const n=dueCards(S.items).length, tb=nav.querySelector('[data-tab="today"]'); tb.querySelector(".badge")?.remove();
+  if(n&&U.tab!=="today") tb.insertAdjacentHTML("beforeend",`<span class="badge">${n}</span>`);
+  if(U.tab==="today") bindDeck();
+  if(U.tab==="add"){ const on=app.querySelector(".chips .chip.on"); if(on) on.scrollIntoView({block:"nearest",inline:"center"}); }
 }
-function go(tab){ U.tab=tab; U.revealed=false; U.open=null; U.edit=null; U.confirmDel=null; try{ history.replaceState(null,"","#"+tab);}catch(e){} render(); window.scrollTo(0,0); }
+function go(tab){ if(!TABS.includes(tab)) tab="today"; U.tab=tab; U.open=null; U.edit=null; U.confirm=null; U.confirmOut=false; U.revealed=false;
+  if(tab==="today") U.queue=U.queue&&U.practice?U.queue:null; try{history.replaceState(null,"",REDIRECT+"#"+tab);}catch(e){}
+  render(); window.scrollTo(0,0); if(tab==="add") setTimeout(()=>document.getElementById("atext")?.focus(),50); if(tab==="set") refreshSub().then(()=>U.tab==="set"&&render()); }
 
+/* ---------- swiping ---------- */
+let dragging=false;
+function answerTop(know){
+  const list=currentCards(); if(!list.length) return; const c=list[0];
+  U.undo={...c}; const n=swipeCard(c,know,U.practice); U.done++; U.revealed=false;
+  U.queue=U.queue.filter(id=>id!==c.id);
+  if(!know&&!U.retry.has(c.id)){ U.retry.add(c.id); U.queue.push(c.id); } // one more try at the end of today's stack
+  saveCard(n); render();
+}
+function flyOut(know){ const el=document.getElementById("top"); if(!el) return answerTop(know);
+  el.style.transition="transform .28s ease-in, opacity .28s"; el.style.transform=`translateX(${know?140:-140}%) rotate(${know?24:-24}deg)`; el.style.opacity="0";
+  setTimeout(()=>answerTop(know),230); }
+function bindDeck(){
+  const el=document.getElementById("top"); if(!el) return;
+  let x0=0,y0=0,dx=0,dy=0,id=null,moved=false;
+  const sk=el.querySelector("#sk"), sa=el.querySelector("#sa");
+  el.addEventListener("pointerdown",e=>{ if(e.target.closest("a")) return; id=e.pointerId; x0=e.clientX; y0=e.clientY; dx=dy=0; moved=false; dragging=true; el.setPointerCapture(id); el.style.transition="none"; });
+  el.addEventListener("pointermove",e=>{ if(e.pointerId!==id) return; dx=e.clientX-x0; dy=e.clientY-y0; if(Math.abs(dx)>6) moved=true;
+    el.style.transform=`translate(${dx}px,${dy*0.15}px) rotate(${dx/18}deg)`; sk.style.opacity=Math.max(0,Math.min(1,dx/90)); sa.style.opacity=Math.max(0,Math.min(1,-dx/90)); });
+  const end=e=>{ if(e.pointerId!==id) return; id=null; dragging=false;
+    if(Math.abs(dx)>95){ flyOut(dx>0); return; }
+    el.style.transition="transform .25s"; el.style.transform=""; sk.style.opacity=0; sa.style.opacity=0;
+    if(!moved){ U.revealed=!U.revealed; render(); } };
+  el.addEventListener("pointerup",end); el.addEventListener("pointercancel",end);
+}
+document.addEventListener("keydown",e=>{ if(U.tab!=="today"||busy()) return;
+  if(e.key==="ArrowRight") flyOut(true); else if(e.key==="ArrowLeft") flyOut(false); else if(e.key===" "){ e.preventDefault(); U.revealed=!U.revealed; render(); } });
+
+/* ---------- clicks ---------- */
 document.getElementById("nav").addEventListener("click",e=>{ const b=e.target.closest("button"); if(b) go(b.dataset.tab); });
-
-document.getElementById("app").addEventListener("click",e=>{
-  const t=e.target.closest("button,[data-open]"); if(!t) return;
-  const due=dueCards()[0];
+document.getElementById("app").addEventListener("click",async e=>{
+  const t=e.target.closest("button,[data-open]"); if(!t) return; const id=t.id;
+  if(id==="glogin"||id==="relogin") return login();
   if(t.dataset.go) return go(t.dataset.go);
-  if(t.id==="reveal"){ U.revealed=true; return render(); }
-  if(t.id==="read"&&due){ U.revealed=false; U.doneToday++; markRead(due); return; }
-  if(t.dataset.ans&&due){ U.revealed=false; U.doneToday++; answer(due,t.dataset.ans); return; }
-  // add form
-  if(t.dataset.fcat!==undefined){ U.form.cat=t.dataset.fcat; return render(); }
-  if(t.dataset.flevel!==undefined){ U.form.level=+t.dataset.flevel; return render(); }
-  if(t.id==="newcatbtn"){ U.newCat=!U.newCat; render(); document.getElementById("newcat")?.focus(); return; }
-  if(t.id==="newcatsave"){ const v=document.getElementById("newcat").value.trim(); if(!v) return;
-    if(!S.cats.some(c=>c.name.toLowerCase()===v.toLowerCase())) S.cats=[...S.cats,{name:v,color:PLATE[S.cats.length%PLATE.length]}];
-    U.form.cat=v; U.newCat=false; saveCats(); return; }
-  if(t.id==="save"){ const f=U.form; if(!f.text.trim()||!f.cat) return;
-    const c={id:uid(),cat:f.cat,text:f.text.trim(),cue:f.cue.trim(),note:f.note.trim(),level:f.level,reads:0,seen:0,created:new Date().toISOString(),due:addDays(today(),LEVELS[f.level].days)};
-    U.form={cat:f.cat,text:"",cue:"",note:"",level:f.level}; saveCard(c); toast("Saved — first time "+nice(c.due)); return; }
-  // list
+  if(id==="know") return flyOut(true);
+  if(id==="again") return flyOut(false);
+  if(id==="undo"&&U.undo){ const c={...U.undo}; U.undo=null; U.queue=[c.id,...(U.queue||[]).filter(x=>x!==c.id)]; U.done=Math.max(0,U.done-1); if(c.due>today()) U.retry.add(c.id); saveCard(c); render(); return; }
+  if(id==="practice"){ const all=live().sort(()=>Math.random()-.5).slice(0,10); U.queue=all.map(c=>c.id); U.practice=true; U.retry=new Set(); render(); return; }
+  if(id==="starter"){ addStarter(); U.queue=null; toast("23 cards added"); go("today"); return; }
+  // add
+  if(t.dataset.acat){ U.add.cat=t.dataset.acat; U.add.auto=false; return render(); }
+  if(t.dataset.intent!==undefined){ U.add.intent=+t.dataset.intent; return render(); }
+  if(id==="amore"){ U.add.more=true; render(); document.getElementById("acue")?.focus(); return; }
+  if(id==="asave") return saveNew();
+  // library
   if(t.dataset.filter!==undefined){ U.filter=t.dataset.filter||null; return render(); }
-  if(t.dataset.open){ const c=S.cards.get(t.dataset.open); U.open=c.id; U.edit={...c}; U.confirmDel=null; return render(); }
-  if(t.dataset.ecat!==undefined){ U.edit.cat=t.dataset.ecat; return render(); }
-  if(t.dataset.elevel!==undefined){ U.edit.level=+t.dataset.elevel; return render(); }
-  if(t.id==="ecancel"){ U.open=null; U.edit=null; return render(); }
-  if(t.id==="esave"){ const old=S.cards.get(U.open), e2={...U.edit,text:U.edit.text.trim(),cue:(U.edit.cue||"").trim(),note:(U.edit.note||"").trim()};
+  if(t.dataset.open){ const c=S.items.find(x=>x.id===t.dataset.open); U.open=c.id; U.edit={...c}; U.confirm=null; return render(); }
+  if(t.dataset.ecat){ U.edit.cat=t.dataset.ecat; return render(); }
+  if(id==="ecancel"){ U.open=U.edit=null; return render(); }
+  if(id==="esave"){ const old=S.items.find(x=>x.id===U.open), e2={...U.edit,text:U.edit.text.trim(),cue:(U.edit.cue||"").trim(),note:(U.edit.note||"").trim()};
     if(!e2.text) return toast("The line can't be empty");
-    if(e2.level!==old.level){ e2.reads=0; e2.due=addDays(today(),LEVELS[e2.level].days); }
-    U.open=null; U.edit=null; saveCard(e2); toast("Saved"); return; }
-  if(t.id==="edel"){ U.confirmDel=U.open; return render(); }
-  if(t.id==="edelno"){ U.confirmDel=null; return render(); }
-  if(t.id==="edelyes"){ const id=U.open; U.open=null; U.edit=null; U.confirmDel=null; deleteCard(id); toast("Deleted"); return; }
-  if(t.id==="glogin"||t.id==="gsync") return sync(true);
-  if(t.id==="gout"){ LS.set("kc_linked",false); LS.set("kc_token",null); LS.set("kc_folder",null); syncState="local"; return render(); }
-  if(t.id==="bdown") return downloadBackup();
-  if(t.id==="enow"){ const c={...S.cards.get(U.open),due:today()}; U.open=null; U.edit=null; saveCard(c); toast("It's in Today"); return; }
+    if((e2.level||0)!==(old.level||0)) e2.due=addDays(today(),LEVELS[e2.level]);
+    U.open=U.edit=null; saveCard(e2); render(); return toast("Saved"); }
+  if(id==="edel"){ U.confirm=U.open; return render(); }
+  if(id==="edelno"){ U.confirm=null; return render(); }
+  if(id==="edelyes"){ const x=U.open; U.open=U.edit=U.confirm=null; deleteCard(x); render(); return toast("Deleted"); }
+  if(id==="enow"){ const c={...S.items.find(x=>x.id===U.open),due:today()}; U.open=U.edit=null; U.queue=null; saveCard(c); render(); return toast("It's in today's cards"); }
+  // notifications
+  if(id==="pon") return turnOnPush().catch(err=>toast("Couldn't turn on: "+err.message));
+  if(id==="poff") return turnOffPush();
+  if(id==="ptest"){ const r=await navigator.serviceWorker.ready; r.active&&r.active.postMessage({showCard:true}); return toast("Look at your notifications"); }
+  if(id==="pcopy"){ try{ await navigator.clipboard.writeText(pushConfig()); toast("Key copied – paste it on GitHub"); }catch(err){ toast("Copy failed"); } return; }
+  if(id==="pdone"){ S.push={...S.push,secretSet:true}; await savePush(); render(); return toast("All set – cards will come to you"); }
+  if(id==="pundo"){ S.push={...S.push,secretSet:false}; await savePush(); return render(); }
+  // me
+  if(id==="syncnow") return sync();
+  if(id==="signout"){ U.confirmOut=true; return render(); }
+  if(id==="outno"){ U.confirmOut=false; return render(); }
+  if(id==="outyes"){ await turnOffPush().catch(()=>{}); ["kc_linked","kc_token","kc_folder","kc_me","kc_lastsync"].forEach(k=>LS.del(k)); await DB.set("data",emptyData()); await DB.del("owner"); S=emptyData(); U.queue=null; meChecked=false; U.confirmOut=false; render(); return; }
+  if(id==="bdown"){ const blob=new Blob([JSON.stringify({app:"karticky",v:2,...S},null,1)],{type:"application/json"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`tip-cards-${today()}.json`; document.body.appendChild(a); a.click(); a.remove(); return; }
 });
-
-document.getElementById("app").addEventListener("input",e=>{
-  const el=e.target;
-  if(el.dataset.ff){ U.form[el.dataset.ff]=el.value; const s=document.getElementById("save"); if(s){ const ok=U.form.text.trim()&&U.form.cat; s.disabled=!ok; s.style.opacity=ok?1:.45; } }
-  if(el.dataset.ef){ U.edit[el.dataset.ef]=el.value; }
+document.getElementById("app").addEventListener("input",e=>{ const el=e.target;
+  if(el.id==="atext"){ U.add.text=el.value; if(U.add.auto){ const gc=guessCat(el.value); if(gc&&gc!==U.add.cat){ U.add.cat=gc; render(); return; } }
+    const s=document.getElementById("asave"); if(s){ const ok=!!el.value.trim(); s.disabled=!ok; s.style.opacity=ok?1:.4; } }
+  if(el.id==="acue") U.add.cue=el.value; if(el.id==="anote") U.add.note=el.value;
+  if(el.id==="etext") U.edit.text=el.value; if(el.id==="ecue") U.edit.cue=el.value; if(el.id==="enote") U.edit.note=el.value;
+  if(el.id==="elevel"){ U.edit.level=+el.value; render(); }
   if(el.id==="search"){ U.q=el.value; render(); }
 });
-document.getElementById("app").addEventListener("change",e=>{ if(e.target.id==="bload"&&e.target.files[0]){ importBackup(e.target.files[0]); e.target.value=""; } });
-document.getElementById("app").addEventListener("keydown",e=>{ if(e.target.id==="newcat"&&e.key==="Enter"){ document.getElementById("newcatsave").click(); } });
-window.addEventListener("hashchange",()=>{ const h=location.hash.slice(1); if(["today","add","all","how"].includes(h)&&h!==U.tab) go(h); });
+document.getElementById("app").addEventListener("keydown",e=>{ if(e.target.id==="atext"&&e.key==="Enter"&&(e.ctrlKey||e.metaKey)) saveNew(); });
+document.getElementById("app").addEventListener("change",e=>{ if(e.target.id==="bload"&&e.target.files[0]){ const r=new FileReader(); r.onload=()=>{ try{ const j=JSON.parse(r.result); if(!j.items) throw 0; S=mergeData(S,j); persist(); render(); toast("Backup loaded"); }catch(err){ toast("Not a Tip Cards backup"); } }; r.readAsText(e.target.files[0]); e.target.value=""; } });
+function saveNew(){
+  const a=U.add; if(!a.text.trim()) return;
+  const cat=a.cat||guessCat(a.text)||LS.get("kc_lastcat","openers"), lvl=INTENTS[a.intent].lvl;
+  const c={id:uid(),cat,text:a.text.trim(),cue:a.cue.trim(),note:(a.note||a.shared||"").trim(),level:lvl,due:addDays(today(),lvl===0?0:1),created:new Date().toISOString(),seen:0};
+  LS.set("kc_lastcat",cat); U.add={text:"",cue:"",note:"",cat:null,auto:true,intent:a.intent,more:false}; U.queue=null;
+  saveCard(c); render(); toast(`Saved to ${catOf(cat).emoji} ${catOf(cat).name}`); document.getElementById("atext")?.focus();
+}
 
-oauthReturn();
-{ const h=location.hash.slice(1); if(["today","add","all","how"].includes(h)) U.tab=h; }
-load(); render();
-if(linked()&&!tok()&&navigator.onLine){ silentLogin()||sync(false); } else sync(false);
-if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+/* ================= start ================= */
+(async()=>{
+  oauthReturn();
+  const qp=new URLSearchParams(location.search); // shared from YouTube etc.
+  if(qp.has("url")||qp.has("text")||qp.has("title")){ const txt=[qp.get("title"),qp.get("text"),qp.get("url")].filter(Boolean).join(" ").trim();
+    const url=(txt.match(/https?:\/\/\S+/)||[""])[0]; U.add.shared=url||txt; U.tab="add"; history.replaceState(null,"",REDIRECT+"#add"); }
+  else { const h=location.hash.slice(1); if(TABS.includes(h)) U.tab=h; }
+  try{ S=await DB.get("data")||emptyData(); }catch(e){ S=emptyData(); }
+  const old=LS.get("kc_data",null); // cards from the first version
+  if(old&&old.items){ const map={Dating:"flirt",Socializing:"openers",Chatting:"banter",Books:"books",Skills:"confidence"};
+    S=mergeData(S,{items:old.items.map(c=>c.del?c:({...c,cat:map[c.cat]||"openers",upd:c.upd||Date.now()}))}); await DB.set("data",S); LS.del("kc_data"); }
+  render();
+  if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+  if(!linked()) return;
+  if(!tok()&&navigator.onLine&&silentLogin()) return;
+  sync();
+  if(U.tab==="add") setTimeout(()=>document.getElementById("atext")?.focus(),80);
+})();
 </script>
 </body>
 </html>
