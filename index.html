@@ -40,7 +40,8 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 .tc .band{position:absolute;left:0;right:0;top:0;height:7px}
 .tc .head{display:flex;justify-content:space-between;align-items:center}
 .tag{display:inline-flex;align-items:center;gap:6px;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:14px;letter-spacing:.5px;text-transform:uppercase;padding:6px 11px;border-radius:999px;background:var(--soft)}
-.tc .body{flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px;overflow:auto}
+.tc .body{flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px;overflow:hidden;min-height:0}
+.tc,.tc *{touch-action:none}
 .tc .cue{font-size:19px;line-height:1.35;color:var(--muted)}
 .tc .cue b{display:block;font-family:"Barlow Condensed",sans-serif;font-size:13px;letter-spacing:.6px;text-transform:uppercase;margin-bottom:4px}
 .tc .line{font-size:26px;line-height:1.28;font-weight:700;white-space:pre-wrap}
@@ -194,7 +195,7 @@ async function sync(){
     const remote=fileId?await (await g(`${API}/files/${fileId}?alt=media`)).json():null;
     const local=await DB.get("data")||emptyData();
     const merged=mergeData(local,remote);
-    if(sig(merged)!==sig(local)){ await DB.set("data",merged); S=merged; if(!busy()) render(); }
+    if(sig(merged)!==sig(local)){ await DB.set("data",merged); S=merged; purgeStarter(); if(!busy()) render(); }
     if(!remote||sig(merged)!==sig(remote)){
       const body=JSON.stringify({app:"karticky",v:2,...merged});
       if(fileId) await g(`${UP}/files/${fileId}?uploadType=media`,{method:"PATCH",headers:{"Content-Type":"application/json"},body});
@@ -251,33 +252,8 @@ function guessCat(text){ const t=" "+text.toLowerCase()+" "; let best=null,score
   if(!best&&text.trim().endsWith("?")) best="deep";
   return best; }
 
-/* ================= starter pack (original lines, optional) ================= */
-const STARTER=[
- ["openers","I had to come say hi – you look like the person who knows the best place to eat around here.","Starting a chat with a stranger"],
- ["openers","What's the story behind that?","Something they wear or carry stands out"],
- ["openers","How do you know everyone here?","Party where you only know the host"],
- ["openers","I'm going to grab a drink, but I'm really glad we talked.","Leaving a conversation without it getting awkward"],
- ["flirt","I'm having a really good time with you.","The date is going well – say it out loud"],
- ["flirt","Careful, I might start liking you.","She teases you and you want to tease back"],
- ["banter","Yes, and on weekends I also steal candy from kids.","Someone teases you – agree and exaggerate"],
- ["banter","Okay, you've officially lost music privileges.","Playful revenge after a small disagreement"],
- ["deep","What's something you're looking forward to right now?","Getting past small talk"],
- ["deep","What did you want to be as a kid – and how close did you get?","When the talk feels flat"],
- ["deep","What's the best thing that happened to you this week?","Asking a better 'how are you'"],
- ["stories","Start in the middle: \"So I'm standing in the rain, holding a goat…\"","Starting a story"],
- ["stories","Situation – problem – twist. Stop talking after the twist.","Telling any story"],
- ["listen","Wait, go back – what happened then?","Showing you really listen"],
- ["listen","It sounds like that really got to you.","Someone vents about a problem"],
- ["listen","Ask one follow-up question before telling your own story.","Tip"],
- ["confidence","Slow down. A pause looks calm, not stuck.","Tip – when you feel rushed"],
- ["confidence","Rejection is information, not a verdict.","Mindset"],
- ["texting","Thursday 7pm, coffee at the corner place?","Moving from chatting to meeting – text the plan"],
- ["texting","Reply to the feeling, not just the words.","Tip"],
- ["work","What would need to be true for this to work for you?","Negotiation is stuck"],
- ["work","Just to make sure – you need X by Friday, right?","Ending a meeting with clarity"],
- ["books","Use their name once, early. People love hearing it.","Idea from 'How to Win Friends'"],
-];
-function addStarter(){ const t=today(); STARTER.forEach(([cat,text,cue],i)=>{ S.items.push({id:"st"+i+"_"+Date.now().toString(36),cat,text,cue,note:"",level:1,due:t,created:new Date().toISOString(),starter:true,upd:Date.now()}); }); persist(); }
+/* starter cards from an earlier version are removed for good (deleted on every device via sync) */
+function purgeStarter(){ let n=0; S.items=S.items.map(c=>{ if(c.starter&&!c.del){ n++; return {id:c.id,del:true,upd:Date.now()}; } return c; }); if(n){ U.queue=null; persist(); } return n; }
 
 /* ================= UI state ================= */
 const TABS=["today","lib","add","set","me"];
@@ -319,10 +295,10 @@ function vToday(){
     const all=live(), known=all.filter(c=>(c.level||0)>=3).length;
     const next=all.slice().sort((a,b)=>a.due<b.due?-1:1)[0];
     h+=`<div class="panel done"><div class="big">${all.length?"🎉":"🃏"}</div><h2>${all.length?"You're done for today":"No cards yet"}</h2>
-      <p class="muted">${all.length?(next?`Next card comes ${nice(next.due)}.`:""):"Add a line you heard today – or start with 23 good ones."}</p>
+      <p class="muted">${all.length?(next?`Next card comes ${nice(next.due)}.`:""):"Add a line you heard today."}</p>
       ${all.length?`<div class="stats"><div class="stat"><b>${all.length}</b><span>Cards</span></div><div class="stat"><b>${U.done}</b><span>Swiped today</span></div><div class="stat"><b>${known}</b><span>Know well</span></div></div>
       <div class="row"><button class="btn" id="practice">Practice more</button><button class="btn main" data-go="add">Add a card</button></div>`
-      :`<div class="row" style="flex-direction:column"><button class="btn main full" data-go="add">Add my first card</button><button class="btn full" id="starter">Add 23 starter lines</button></div>`}
+      :`<div class="row" style="flex-direction:column"><button class="btn main full" data-go="add">Add my first card</button></div>`}
     </div>`;
     if(U.undo) h+=`<div class="actions"><button class="round u" id="undo" title="Undo">↶</button></div>`;
     return h;
@@ -459,7 +435,6 @@ function vMe(){
     <p>📤 On your phone, <b>share a YouTube video</b> to Tip Cards and the link is saved with your new card.</p>
   </div>
   <div class="panel set"><h3>Extras</h3>
-    ${live().some(c=>c.starter)?"":`<div class="row"><button class="btn small" id="starter">Add 23 starter lines</button></div>`}
     <div class="row"><button class="btn small" id="bdown">Download backup</button><label class="btn small" style="cursor:pointer">Load backup<input type="file" id="bload" accept=".json,application/json" hidden></label></div>
   </div>`;
 }
@@ -497,16 +472,21 @@ function flyOut(know){ const el=document.getElementById("top"); if(!el) return a
   setTimeout(()=>answerTop(know),230); }
 function bindDeck(){
   const el=document.getElementById("top"); if(!el) return;
-  let x0=0,y0=0,dx=0,dy=0,id=null,moved=false;
+  let x0=0,y0=0,dx=0,dy=0,id=null,moved=false,t0=0;
   const sk=el.querySelector("#sk"), sa=el.querySelector("#sa");
-  el.addEventListener("pointerdown",e=>{ if(e.target.closest("a")) return; id=e.pointerId; x0=e.clientX; y0=e.clientY; dx=dy=0; moved=false; dragging=true; el.setPointerCapture(id); el.style.transition="none"; });
-  el.addEventListener("pointermove",e=>{ if(e.pointerId!==id) return; dx=e.clientX-x0; dy=e.clientY-y0; if(Math.abs(dx)>6) moved=true;
-    el.style.transform=`translate(${dx}px,${dy*0.15}px) rotate(${dx/18}deg)`; sk.style.opacity=Math.max(0,Math.min(1,dx/90)); sa.style.opacity=Math.max(0,Math.min(1,-dx/90)); });
-  const end=e=>{ if(e.pointerId!==id) return; id=null; dragging=false;
-    if(Math.abs(dx)>95){ flyOut(dx>0); return; }
-    el.style.transition="transform .25s"; el.style.transform=""; sk.style.opacity=0; sa.style.opacity=0;
-    if(!moved){ U.revealed=!U.revealed; render(); } };
-  el.addEventListener("pointerup",end); el.addEventListener("pointercancel",end);
+  const reset=()=>{ el.style.transition="transform .25s"; el.style.transform=""; sk.style.opacity=0; sa.style.opacity=0; };
+  el.addEventListener("pointerdown",e=>{ if(e.target.closest("a")||(e.pointerType==="mouse"&&e.button!==0)) return;
+    id=e.pointerId; x0=e.clientX; y0=e.clientY; dx=dy=0; moved=false; t0=Date.now(); dragging=true;
+    try{ el.setPointerCapture(id); }catch(err){} el.style.transition="none"; });
+  el.addEventListener("pointermove",e=>{ if(e.pointerId!==id) return; e.preventDefault();
+    dx=e.clientX-x0; dy=e.clientY-y0; if(Math.abs(dx)>8||Math.abs(dy)>8) moved=true;
+    el.style.transform=`translate(${dx}px,${dy*0.15}px) rotate(${dx/18}deg)`;
+    sk.style.opacity=Math.max(0,Math.min(1,dx/80)); sa.style.opacity=Math.max(0,Math.min(1,-dx/80)); });
+  el.addEventListener("pointerup",e=>{ if(e.pointerId!==id) return; id=null; dragging=false;
+    const fast=Math.abs(dx)>40&&Date.now()-t0<250; // a quick flick counts too
+    if(Math.abs(dx)>80||fast){ flyOut(dx>0); return; }
+    reset(); if(!moved){ U.revealed=!U.revealed; render(); } });
+  el.addEventListener("pointercancel",e=>{ if(e.pointerId!==id) return; id=null; dragging=false; reset(); });
 }
 document.addEventListener("keydown",e=>{ if(U.tab!=="today"||busy()) return;
   if(e.key==="ArrowRight") flyOut(true); else if(e.key==="ArrowLeft") flyOut(false); else if(e.key===" "){ e.preventDefault(); U.revealed=!U.revealed; render(); } });
@@ -521,7 +501,6 @@ document.getElementById("app").addEventListener("click",async e=>{
   if(id==="again") return flyOut(false);
   if(id==="undo"&&U.undo){ const c={...U.undo}; U.undo=null; U.queue=[c.id,...(U.queue||[]).filter(x=>x!==c.id)]; U.done=Math.max(0,U.done-1); if(c.due>today()) U.retry.add(c.id); saveCard(c); render(); return; }
   if(id==="practice"){ const all=live().sort(()=>Math.random()-.5).slice(0,10); U.queue=all.map(c=>c.id); U.practice=true; U.retry=new Set(); render(); return; }
-  if(id==="starter"){ addStarter(); U.queue=null; toast("23 cards added"); go("today"); return; }
   // add
   if(t.dataset.acat){ U.add.cat=t.dataset.acat; U.add.auto=false; return render(); }
   if(t.dataset.intent!==undefined){ U.add.intent=+t.dataset.intent; return render(); }
@@ -583,6 +562,7 @@ function saveNew(){
   const old=LS.get("kc_data",null); // cards from the first version
   if(old&&old.items){ const map={Dating:"flirt",Socializing:"openers",Chatting:"banter",Books:"books",Skills:"confidence"};
     S=mergeData(S,{items:old.items.map(c=>c.del?c:({...c,cat:map[c.cat]||"openers",upd:c.upd||Date.now()}))}); await DB.set("data",S); LS.del("kc_data"); }
+  purgeStarter();
   render();
   if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
   if(!linked()) return;
