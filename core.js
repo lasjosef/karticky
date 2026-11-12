@@ -34,7 +34,7 @@ function swipeCard(c, know, practice) {
 }
 function dueCards(items) {
   const t = today();
-  return (items || []).filter(c => !c.del && c.due <= t)
+  return (items || []).filter(c => !c.del && !c.inbox && c.due <= t)
     .sort((a, b) => a.due < b.due ? -1 : a.due > b.due ? 1 : (a.level || 0) - (b.level || 0));
 }
 
