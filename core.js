@@ -17,6 +17,8 @@ const DEFAULT_CATS = [
   { id: "texting",    name: "Texting",        emoji: "💬", color: "#0090ff", hint: "Messages, DMs, setting up dates" },
   { id: "work",       name: "Work talk",      emoji: "💼", color: "#646f80", hint: "Boss, clients, negotiation" },
   { id: "books",      name: "Book notes",     emoji: "📖", color: "#30a46c", hint: "Ideas from books & videos" },
+  { id: "fit",        name: "Body & fitness", emoji: "💪", color: "#d6409f", hint: "Training, food, health" },
+  { id: "life",       name: "Life & money",   emoji: "🧭", color: "#978365", hint: "Money, habits, big decisions" },
 ];
 
 const pad = n => String(n).padStart(2, "0");
