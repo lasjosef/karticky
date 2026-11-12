@@ -121,6 +121,8 @@ nav .badge{position:absolute;top:3px;right:9px;background:#e5484d;color:#fff;fon
 .toast.show{opacity:1}
 .inboxbar{width:100%;display:flex;align-items:center;gap:10px;text-align:left;padding:14px 16px;border-radius:18px;margin-bottom:14px;background:color-mix(in srgb,#3e63dd 12%,var(--card))}
 .inboxbar span:first-child{font-size:22px}.inboxbar b{flex:1;font-size:15px}.inboxbar .go{color:#3e63dd;font-weight:700;font-size:14px;white-space:nowrap}
+.tc .hr{display:flex;align-items:center;gap:8px}
+.cdel{width:34px;height:34px;border-radius:50%;background:var(--soft);font-size:15px;display:flex;align-items:center;justify-content:center;opacity:.75}
 .hidden{display:none!important}
 </style>
 </head>
@@ -201,7 +203,7 @@ async function sync(){
     const remote=fileId?await (await g(`${API}/files/${fileId}?alt=media`)).json():null;
     const local=await DB.get("data")||emptyData();
     const merged=mergeData(local,remote);
-    if(sig(merged)!==sig(local)){ await DB.set("data",merged); S=merged; purgeStarter(); if(!busy()) render(); }
+    if(sig(merged)!==sig(local)){ await DB.set("data",merged); S=merged; purgeStarter(); migrateInbox(); if(!busy()) render(); }
     if(!remote||sig(merged)!==sig(remote)){
       const body=JSON.stringify({app:"karticky",v:2,...merged});
       if(fileId) await g(`${UP}/files/${fileId}?uploadType=media`,{method:"PATCH",headers:{"Content-Type":"application/json"},body});
@@ -229,15 +231,19 @@ const cats=()=>S.cats&&S.cats.length?S.cats:DEFAULT_CATS;
 const catOf=id=>cats().find(c=>c.id===id)||{id:"other",name:"Other",emoji:"✨",color:"#8b8d98"};
 const live=()=>S.items.filter(c=>!c.del&&!c.inbox);
 const inboxCards=()=>S.items.filter(c=>!c.del&&c.inbox).sort((a,b)=>(a.order||0)-(b.order||0));
-const NEW_PER_DAY=5;
+const NEW_PER_DAY=10;
 function nextFreeDay(){ // kept inbox cards join the deck max 5 per day
   const per={}; S.items.forEach(c=>{ if(!c.del&&!c.inbox&&c.fromInbox&&!c.seen) per[c.due]=(per[c.due]||0)+1; });
   let d=today(); while((per[d]||0)>=NEW_PER_DAY) d=addDays(d,1); return d; }
 /* used by Claude to drop new cards from your saved Instagram videos into the inbox */
 window.importCards=function(arr){ let n=0; const t=Date.now();
   (arr||[]).forEach((c,i)=>{ if(!c||!c.id||!c.text||S.items.some(x=>x.id===c.id)) return;
-    S.items.push({id:c.id,cat:c.cat||"books",text:c.text,cue:c.cue||"",note:c.note||"",level:1,due:today(),created:new Date().toISOString(),seen:0,inbox:true,order:t+i,src:c.src||"",upd:t}); n++; });
-  if(n){ persist(); render(); } return n; };
+    S.items.push({id:c.id,cat:c.cat||"books",text:c.text,cue:c.cue||"",note:c.note||"",level:1,due:nextFreeDay(),created:new Date().toISOString(),seen:0,fromInbox:true,order:t+i,src:c.src||"",upd:t}); n++; });
+  if(n){ U.queue=null; persist(); render(); } return n; };
+/* cards that were waiting in the old review inbox go straight into the deck, 10 new a day */
+function migrateInbox(){ const list=inboxCards(); if(!list.length) return 0; const t=Date.now();
+  list.forEach(c=>{ const n={...c,inbox:false,fromInbox:true,level:1,due:nextFreeDay(),upd:t}; S.items=S.items.map(x=>x.id===c.id?n:x); });
+  U.queue=null; persist(); return list.length; }
 let writing=Promise.resolve();
 function persist(){ // merge with what the notification may have changed meanwhile, then save + sync
   writing=writing.then(async()=>{ const cur=await DB.get("data"); S=mergeData(cur,S); await DB.set("data",S); }).catch(()=>{});
@@ -339,7 +345,7 @@ function cardHTML(c,pos,isInbox){
   const cat=catOf(c.cat), hasCue=!!(c.cue&&c.cue.trim()), hidden=!isInbox&&hasCue&&!(pos===0&&U.revealed);
   return `<div class="tc ${pos===1?"back1":pos===2?"back2":""}" ${pos===0?'id="top"':""} data-id="${c.id}">
     <div class="band" style="background:${cat.color}"></div>
-    <div class="head">${tag(cat)}<span class="muted" style="font-size:13px">${LEVEL_LABEL[c.level||0]}</span></div>
+    <div class="head">${tag(cat)}<span class="hr"><span class="muted" style="font-size:13px">${LEVEL_LABEL[c.level||0]}</span>${pos===0&&!isInbox?`<button class="cdel" data-del="${c.id}" title="Delete card" aria-label="Delete card">🗑</button>`:""}</span></div>
     <div class="body">
       ${hasCue?`<div class="cue"><b>When</b>${esc(c.cue)}</div>`:""}
       ${hidden?`<div class="reveal">What would you say?<br><span style="font-size:13px">tap to see the line</span></div>`:`<div class="line ${c.text.length>140?"long":""}">${esc(c.text)}</div>`}
@@ -504,7 +510,7 @@ function bindDeck(){
   let x0=0,y0=0,dx=0,dy=0,id=null,moved=false,t0=0;
   const sk=el.querySelector("#sk"), sa=el.querySelector("#sa");
   const reset=()=>{ el.style.transition="transform .25s"; el.style.transform=""; sk.style.opacity=0; sa.style.opacity=0; };
-  el.addEventListener("pointerdown",e=>{ if(e.target.closest("a")||(e.pointerType==="mouse"&&e.button!==0)) return;
+  el.addEventListener("pointerdown",e=>{ if(e.target.closest("a,.cdel")||(e.pointerType==="mouse"&&e.button!==0)) return;
     id=e.pointerId; x0=e.clientX; y0=e.clientY; dx=dy=0; moved=false; t0=Date.now(); dragging=true;
     try{ el.setPointerCapture(id); }catch(err){} el.style.transition="none"; });
   el.addEventListener("pointermove",e=>{ if(e.pointerId!==id) return; e.preventDefault();
@@ -528,6 +534,8 @@ document.getElementById("app").addEventListener("click",async e=>{
   if(t.dataset.go) return go(t.dataset.go);
   if(id==="inboxopen"){ U.inbox=true; render(); window.scrollTo(0,0); return; }
   if(id==="inboxexit"||id==="inboxexit2"){ U.inbox=false; U.queue=null; render(); return; }
+  if(t.dataset.del){ const c=S.items.find(x=>x.id===t.dataset.del); if(!c) return; U.undo={...c}; U.revealed=false;
+    U.queue=(U.queue||[]).filter(x=>x!==c.id); deleteCard(c.id); render(); return toast("Deleted · ↶ to undo"); }
   if(id==="know") return flyOut(true);
   if(id==="again") return flyOut(false);
   if(id==="undo"&&U.undo){ const c={...U.undo}; U.undo=null; U.queue=[c.id,...(U.queue||[]).filter(x=>x!==c.id)]; U.done=Math.max(0,U.done-1); if(c.due>today()) U.retry.add(c.id); saveCard(c); render(); return; }
@@ -593,7 +601,7 @@ function saveNew(){
   const old=LS.get("kc_data",null); // cards from the first version
   if(old&&old.items){ const map={Dating:"flirt",Socializing:"openers",Chatting:"banter",Books:"books",Skills:"confidence"};
     S=mergeData(S,{items:old.items.map(c=>c.del?c:({...c,cat:map[c.cat]||"openers",upd:c.upd||Date.now()}))}); await DB.set("data",S); LS.del("kc_data"); }
-  purgeStarter();
+  purgeStarter(); migrateInbox();
   render();
   if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
   if(!linked()) return;
