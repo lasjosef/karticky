@@ -119,6 +119,8 @@ nav button.plus{width:56px;height:56px;border-radius:18px;background:var(--ink);
 nav .badge{position:absolute;top:3px;right:9px;background:#e5484d;color:#fff;font-size:11px;font-weight:700;border-radius:9px;padding:1px 6px}
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 92px);transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20;white-space:nowrap}
 .toast.show{opacity:1}
+.inboxbar{width:100%;display:flex;align-items:center;gap:10px;text-align:left;padding:14px 16px;border-radius:18px;margin-bottom:14px;background:color-mix(in srgb,#3e63dd 12%,var(--card))}
+.inboxbar span:first-child{font-size:22px}.inboxbar b{flex:1;font-size:15px}.inboxbar .go{color:#3e63dd;font-weight:700;font-size:14px;white-space:nowrap}
 .hidden{display:none!important}
 </style>
 </head>
@@ -225,7 +227,17 @@ setInterval(()=>{ if(document.visibilityState==="visible"&&Date.now()-lastPull>1
 let S=emptyData();
 const cats=()=>S.cats&&S.cats.length?S.cats:DEFAULT_CATS;
 const catOf=id=>cats().find(c=>c.id===id)||{id:"other",name:"Other",emoji:"✨",color:"#8b8d98"};
-const live=()=>S.items.filter(c=>!c.del);
+const live=()=>S.items.filter(c=>!c.del&&!c.inbox);
+const inboxCards=()=>S.items.filter(c=>!c.del&&c.inbox).sort((a,b)=>(a.order||0)-(b.order||0));
+const NEW_PER_DAY=5;
+function nextFreeDay(){ // kept inbox cards join the deck max 5 per day
+  const per={}; S.items.forEach(c=>{ if(!c.del&&!c.inbox&&c.fromInbox&&!c.seen) per[c.due]=(per[c.due]||0)+1; });
+  let d=today(); while((per[d]||0)>=NEW_PER_DAY) d=addDays(d,1); return d; }
+/* used by Claude to drop new cards from your saved Instagram videos into the inbox */
+window.importCards=function(arr){ let n=0; const t=Date.now();
+  (arr||[]).forEach((c,i)=>{ if(!c||!c.id||!c.text||S.items.some(x=>x.id===c.id)) return;
+    S.items.push({id:c.id,cat:c.cat||"books",text:c.text,cue:c.cue||"",note:c.note||"",level:1,due:today(),created:new Date().toISOString(),seen:0,inbox:true,order:t+i,src:c.src||"",upd:t}); n++; });
+  if(n){ persist(); render(); } return n; };
 let writing=Promise.resolve();
 function persist(){ // merge with what the notification may have changed meanwhile, then save + sync
   writing=writing.then(async()=>{ const cur=await DB.get("data"); S=mergeData(cur,S); await DB.set("data",S); }).catch(()=>{});
@@ -292,9 +304,19 @@ function currentCards(){
   U.queue=U.queue.filter(id=>{ const c=S.items.find(x=>x.id===id); return c&&!c.del&&(U.practice||c.due<=t||U.retry.has(id)); });
   return U.queue.map(id=>S.items.find(x=>x.id===id));
 }
+function vInbox(){
+  const list=inboxCards(), s=statusInfo();
+  let h=`<div class="top"><div><h1>New cards</h1><p class="sub"><span id="syncdot" class="dot ${s.k}" title="${esc(s.t)}"></span>${list.length?`${list.length} to review · keep or toss`:"Inbox empty"}</p></div><button class="btn small" id="inboxexit">Done</button></div>`;
+  if(!list.length){ h+=`<div class="panel done"><div class="big">📭</div><h2>All reviewed</h2><p class="muted">Kept cards join your deck, ${NEW_PER_DAY} new ones a day.</p><div class="row"><button class="btn main" id="inboxexit2">Back to my cards</button></div></div>`; return h; }
+  h+=`<div class="deck" id="deck">`; list.slice(0,3).reverse().forEach((c,i,arr)=>{ h+=cardHTML(c,arr.length-1-i,true); }); h+=`</div>
+  <div class="actions"><button class="round a" id="again" title="Toss (←)">🗑</button><button class="round k" id="know" title="Keep (→)">✓</button></div>
+  <p class="hintrow">Swipe right to keep · left to toss</p>`;
+  return h;
+}
 function vToday(){
-  const list=currentCards(), s=statusInfo();
-  let h=`<div class="top"><div><h1>Today</h1><p class="sub"><span id="syncdot" class="dot ${s.k}" title="${esc(s.t)}"></span>${list.length?`${list.length} card${list.length>1?"s":""} left${U.practice?" · practice":""}`:"All done"}</p></div></div>`;
+  if(U.inbox) return vInbox();
+  const list=currentCards(), s=statusInfo(), nIn=inboxCards().length;
+  let h=(nIn?`<button class="panel inboxbar" id="inboxopen"><span>📥</span><b>${nIn} new card${nIn>1?"s":""} from your saved videos</b><span class="go">Review →</span></button>`:"")+`<div class="top"><div><h1>Today</h1><p class="sub"><span id="syncdot" class="dot ${s.k}" title="${esc(s.t)}"></span>${list.length?`${list.length} card${list.length>1?"s":""} left${U.practice?" · practice":""}`:"All done"}</p></div></div>`;
   if(!list.length){
     const all=live(), known=all.filter(c=>(c.level||0)>=3).length;
     const next=all.slice().sort((a,b)=>a.due<b.due?-1:1)[0];
@@ -313,18 +335,18 @@ function vToday(){
   <p class="hintrow">Swipe right if you know it · left if not yet${matchMedia("(pointer:fine)").matches?" · or use ← →":""}</p>`;
   return h;
 }
-function cardHTML(c,pos){
-  const cat=catOf(c.cat), hasCue=!!(c.cue&&c.cue.trim()), hidden=hasCue&&!(pos===0&&U.revealed);
+function cardHTML(c,pos,isInbox){
+  const cat=catOf(c.cat), hasCue=!!(c.cue&&c.cue.trim()), hidden=!isInbox&&hasCue&&!(pos===0&&U.revealed);
   return `<div class="tc ${pos===1?"back1":pos===2?"back2":""}" ${pos===0?'id="top"':""} data-id="${c.id}">
     <div class="band" style="background:${cat.color}"></div>
     <div class="head">${tag(cat)}<span class="muted" style="font-size:13px">${LEVEL_LABEL[c.level||0]}</span></div>
     <div class="body">
       ${hasCue?`<div class="cue"><b>When</b>${esc(c.cue)}</div>`:""}
       ${hidden?`<div class="reveal">What would you say?<br><span style="font-size:13px">tap to see the line</span></div>`:`<div class="line ${c.text.length>140?"long":""}">${esc(c.text)}</div>`}
-      ${!hidden&&c.note?`<div class="note">${linkify(c.note)}</div>`:""}
+      ${!hidden&&!isInbox&&c.note?`<div class="note">${linkify(c.note)}</div>`:""}
     </div>
-    <div class="foot"><span>${c.seen?`seen ${c.seen}×`:"new"}</span><span>${c.last==="know"?"✓ last time":c.last==="again"?"✕ last time":""}</span></div>
-    <div class="stamp k" id="sk">KNOW</div><div class="stamp a" id="sa">AGAIN</div>
+    <div class="foot">${isInbox?`<span>${esc(c.src||"")}</span><span>${c.note?`<a class="link" href="${esc(c.note)}" target="_blank" rel="noopener">watch ↗</a>`:""}</span>`:`<span>${c.seen?`seen ${c.seen}×`:"new"}</span><span>${c.last==="know"?"✓ last time":c.last==="again"?"✕ last time":""}</span>`}</div>
+    <div class="stamp k" id="sk">${isInbox?"KEEP":"KNOW"}</div><div class="stamp a" id="sa">${isInbox?"TOSS":"AGAIN"}</div>
   </div>`;
 }
 
@@ -453,7 +475,7 @@ function render(){
   app.innerHTML=V[U.tab]();
   if(aid){ const el=document.getElementById(aid); if(el&&el.focus){ el.focus(); try{ el.setSelectionRange(pos,pos);}catch(e){} } }
   nav.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.tab===U.tab));
-  const n=dueCards(S.items).length, tb=nav.querySelector('[data-tab="today"]'); tb.querySelector(".badge")?.remove();
+  const n=dueCards(S.items).length+inboxCards().length, tb=nav.querySelector('[data-tab="today"]'); tb.querySelector(".badge")?.remove();
   if(n&&U.tab!=="today") tb.insertAdjacentHTML("beforeend",`<span class="badge">${n}</span>`);
   if(U.tab==="today") bindDeck();
 }
@@ -464,6 +486,10 @@ function go(tab){ if(!TABS.includes(tab)) tab="today"; U.tab=tab; U.open=null; U
 /* ---------- swiping ---------- */
 let dragging=false;
 function answerTop(know){
+  if(U.inbox){ const c=inboxCards()[0]; if(!c) return; U.revealed=false;
+    if(know){ saveCard({...c,inbox:false,fromInbox:true,level:1,due:nextFreeDay()}); toast("Kept"); }
+    else { deleteCard(c.id); }
+    render(); return; }
   const list=currentCards(); if(!list.length) return; const c=list[0];
   U.undo={...c}; const n=swipeCard(c,know,U.practice); U.done++; U.revealed=false;
   U.queue=U.queue.filter(id=>id!==c.id);
@@ -491,7 +517,7 @@ function bindDeck(){
     reset(); if(!moved){ U.revealed=!U.revealed; render(); } });
   el.addEventListener("pointercancel",e=>{ if(e.pointerId!==id) return; id=null; dragging=false; reset(); });
 }
-document.addEventListener("keydown",e=>{ if(U.tab!=="today"||busy()) return;
+document.addEventListener("keydown",e=>{ if(U.tab!=="today"||busy()) return; if(U.inbox&&e.key===" ") return;
   if(e.key==="ArrowRight") flyOut(true); else if(e.key==="ArrowLeft") flyOut(false); else if(e.key===" "){ e.preventDefault(); U.revealed=!U.revealed; render(); } });
 
 /* ---------- clicks ---------- */
@@ -500,6 +526,8 @@ document.getElementById("app").addEventListener("click",async e=>{
   const t=e.target.closest("button,[data-open]"); if(!t) return; const id=t.id;
   if(id==="glogin"||id==="relogin") return login();
   if(t.dataset.go) return go(t.dataset.go);
+  if(id==="inboxopen"){ U.inbox=true; render(); window.scrollTo(0,0); return; }
+  if(id==="inboxexit"||id==="inboxexit2"){ U.inbox=false; U.queue=null; render(); return; }
   if(id==="know") return flyOut(true);
   if(id==="again") return flyOut(false);
   if(id==="undo"&&U.undo){ const c={...U.undo}; U.undo=null; U.queue=[c.id,...(U.queue||[]).filter(x=>x!==c.id)]; U.done=Math.max(0,U.done-1); if(c.due>today()) U.retry.add(c.id); saveCard(c); render(); return; }
