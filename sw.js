@@ -1,4 +1,4 @@
-const V="karticky-v3";
+const V="karticky-v4";
 const CORE=["./","index.html","core.js","manifest.webmanifest","icon-192.png","icon-512.png","badge-96.png"];
 importScripts("core.js");
 self.addEventListener("install",e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting()));});
