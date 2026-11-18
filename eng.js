@@ -48,6 +48,20 @@ if(window.speechSynthesis) speechSynthesis.getVoices();
 const sayBtn=t=>`<button class="say" data-say="${esc(t)}" aria-label="Listen">🔊</button>`;
 function turnFor(id){ let h=0; for(const ch of id) h=(h*31+ch.charCodeAt(0))|0; return YOUR_TURN[Math.abs(h)%YOUR_TURN.length]; }
 const chips=a=>`<div class="opts">${a.map(o=>`<span>${esc(o)}</span>`).join("")}</div>`;
+const chipsK=a=>`<div class="opts">${a.map((o,i)=>`<span class="hk${i%3}">${esc(o)}</span>`).join("")}</div>`;
+// colourful highlights: key words in their colours, numbers in purple, **text** marked by hand
+const HL_STARS=new RegExp("\\*\\*(.+?)\\*\\*","g");
+function hl(s,keys){ s=String(s||""); const R=[], low=s.toLowerCase();
+  const add=(i,len,cls)=>{ if(i<0||!len||R.some(r=>i<r.i+r.len&&r.i<i+len)) return; R.push({i,len,cls}); };
+  for(const m of s.matchAll(HL_STARS)) add(m.index,m[0].length,"hm");
+  (keys||[]).forEach((k,n)=>{ k=String(k).trim(); if(!k) return; let i=low.indexOf(k.toLowerCase()), len=k.length;
+    if(i<0){ const w=k.split(/\s+/).filter(x=>x.length>3).sort((a,b)=>b.length-a.length)[0]; if(w){ i=low.indexOf(w.toLowerCase()); len=w.length; } }
+    add(i,len,"hk"+(n%3)); });
+  for(const m of s.matchAll(/\d[\d,.]*(\s?(%|km|cm|metres|seconds|years|million))?/g)) add(m.index,m[0].length,"hn");
+  R.sort((a,b)=>a.i-b.i); let out="", p=0;
+  for(const r of R){ out+=esc(s.slice(p,r.i))+`<mark class="${r.cls}">${esc(s.slice(r.i,r.i+r.len).split("**").join(""))}</mark>`; p=r.i+r.len; }
+  return out+esc(s.slice(p)); }
+const plainOpts=o=>o.map(x=>x.replace(/…|\(.*?\)/g,"").trim());
 function engCardHTML(c,pos){
   const P=engById()[c.id]||{}, d={...c,...P}, K=ENG_KINDS[d.kind]||ENG_KINDS.word, top=pos===0, st=c.st||0, learn=st<2, open=top&&U.revealed;
   const yt=what=>`<div class="yt"><b>Read it out loud – then your turn:</b> ${what} about ${turnFor(c.id+st)}.</div>`;
@@ -58,7 +72,7 @@ function engCardHTML(c,pos){
       if(!learn&&!d.cloze){ step="test"; b=`<div class="ek">Which word means…</div><div class="eq">${esc(d.cue)}</div>`+(open?`<div class="wrow"><div class="ea">${esc(d.text)}</div>${sayBtn(d.text)}</div>`:`<div class="reveal">Say it out loud – then tap</div>`); }
       else b=`<div class="wrow"><div class="ea">${esc(d.text)}</div>${sayBtn(d.text)}</div>${d.pron?`<div class="pron">${esc(d.pron)}</div>`:""}
         <div class="eq">${esc(d.cue)} ${regTag}</div>
-        ${ex?`<div class="exr"><div class="ex">“${esc(ex)}”</div>${sayBtn(ex)}</div>`:""}
+        ${ex?`<div class="exr"><div class="ex">“${hl(ex,[d.text])}”</div>${sayBtn(ex)}</div>`:""}
         ${yt(`say your own sentence with <i>${esc(d.text)}</i>`)}
         ${d.tr?`<div class="etr">🇨🇿 ${esc(d.tr)}</div>`:""}`; }
     else { const hint=d.text.split(" ").map(w=>w[0]+"·".repeat(Math.max(0,w.length-1))).join("  ");
@@ -69,21 +83,21 @@ function engCardHTML(c,pos){
     const opts=d.text.split(" / ");
     if(learn||!d.cloze){ const ex=st===1&&d.ex2?d.ex2:d.ex;
       b=(d.kind==="up"?`<div class="ek">Instead of “${esc(d.cue)}” say</div>`:`<div class="ek">${esc(d.cue)}</div>`)+chips(opts)+
-        (ex?`<div class="exr"><div class="ex">${esc(ex)}</div>${sayBtn(ex)}</div>`:"")+yt("use it");
+        (ex?`<div class="exr"><div class="ex">${hl(ex,plainOpts(opts))}</div>${sayBtn(ex)}</div>`:"")+yt("use it");
       if(!learn) step="learn"; }
     else { b=(d.kind==="up"?`<div class="ek">Say it more elegantly</div><div class="eq">${esc(d.cloze).replace(/\[(.+?)\]/,"<s>$1</s>")}</div>`:`<div class="ek">${esc(d.cue)}</div><div class="eq">${esc(d.cloze)}</div>`)+
-        (open?chips(opts)+(d.ex?`<div class="exr"><div class="ex">${esc(d.ex)}</div>${sayBtn(d.ex)}</div>`:""):`<div class="reveal">Say it out loud – then tap</div>`); } }
+        (open?chips(opts)+(d.ex?`<div class="exr"><div class="ex">${hl(d.ex,plainOpts(opts))}</div>${sayBtn(d.ex)}</div>`:""):`<div class="reveal">Say it out loud – then tap</div>`); } }
   else if(d.kind==="wit"){
     const reps=`<div class="ea small">${d.text.split(" / ").map(x=>"→ "+esc(x)).join("<br>")}</div>`;
     if(st<1){ step="learn"; b=`<div class="ek">${esc(d.tech)}</div><div class="eq">They say: <b>“${esc(d.cue)}”</b></div>${reps}<div class="yt"><b>Read the replies out loud, with a smile</b> – then invent one of your own.</div>`; }
     else { step="test"; b=`<div class="ek">${esc(d.tech)}</div><div class="eq">They say: <b>“${esc(d.cue)}”</b></div>`+(open?reps:`<div class="tbar"><i></i></div><div class="reveal">Reply out loud within 10 seconds – then tap</div>`); } }
-  else { const keys=(d.keys||"").split(",").map(s=>s.trim()).filter(Boolean), kh=(d.wiki?`<img class="timg" data-wiki="${esc(d.wiki)}" alt="">`:"")+(keys.length?chips(keys):"");
-    if(st<1){ step="read"; b=`<div class="ek">${esc(d.tech||"")} · read it out loud</div><div class="ea small">${esc(d.text)}</div><div class="brief">${esc(d.ex)}</div>${kh}<button class="btn small talk" data-talk="1">▶ Now tell it in 60 s</button>`; }
-    else { step="retell"; b=`<div class="ek">${esc(d.tech||"")} · retell it</div><div class="ea small">${esc(d.text)}</div>${kh}`+(open?`<div class="brief">${esc(d.ex)}</div>`
+  else { const keys=(d.keys||"").split(",").map(s=>s.trim()).filter(Boolean), kh=(d.wiki?`<img class="timg" data-wiki="${esc(d.wiki)}" alt="">`:"")+(keys.length?chipsK(keys):"");
+    if(st<1){ step="read"; b=`<div class="ek">${esc(d.tech||"")} · read it out loud</div><div class="ea small">${esc(d.text)}</div><div class="brief">${hl(d.ex,keys)}</div>${kh}<button class="btn small talk" data-talk="1">▶ Now tell it in 60 s</button>`; }
+    else { step="retell"; b=`<div class="ek">${esc(d.tech||"")} · retell it</div><div class="ea small">${esc(d.text)}</div>${kh}`+(open?`<div class="brief">${hl(d.ex,keys)}</div>`
       :`<div class="yt"><b>Tell it out loud using these key words</b> – then tap to check.${d.cue?`<br>Then ask someone: <i>${esc(d.cue)}</i>`:""}</div><button class="btn small talk" data-talk="1">▶ Talk 60 s</button>`); } }
   return `<div class="tc eng ${pos===1?"back1":pos===2?"back2":""}" ${top?'id="top"':""} data-id="${c.id}">
     <div class="band" style="background:${K.color}"></div>
-    <div class="head"><span class="tag" style="color:${K.color}">${K.emoji} ${K.name}</span><span class="hr"><span class="muted" style="font-size:13px">${step}</span>${top?`<button class="cdel" data-del="${c.id}" aria-label="Delete card">🗑</button>`:""}</span></div>
+    <div class="head"><span class="tag" style="color:${K.color}">${K.emoji} ${K.name}</span><span class="hr"><span class="muted" style="font-size:13px">${step}</span>${top?`<button class="cdel" data-full="1" aria-label="Open the whole card">${U.full?"⤡":"⤢"}</button><button class="cdel" data-del="${c.id}" aria-label="Delete card">🗑</button>`:""}</span></div>
     <div class="body">${b}</div>
     <div class="foot"><span>${c.seen?"seen "+c.seen+"×":"new"}</span><span>${c.grade==="easy"?"↑ easy last time":c.grade==="hard"?"↓ remind me":c.last==="know"?"✓ last time":c.last==="again"?"✕ last time":""}</span></div>
     <div class="stamp k" id="sk">GOT IT</div><div class="stamp a" id="sa">AGAIN</div><div class="stamp up" id="su">EASY</div><div class="stamp dn" id="sd">REMIND ME</div></div>`; }
