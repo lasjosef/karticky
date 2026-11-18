@@ -46,7 +46,7 @@ function engPack(){ if(_engPack) return _engPack; const P={};
   return _engPack=P; }
 function engById(){ if(!_engById){ _engById={}; const P=engPack(); for(const k in P) P[k].forEach(o=>_engById[o.id]=o); } return _engById; }
 
-const inMode=c=>U.mode==="eng"?c.deck==="eng":c.deck!=="eng";
+const inMode=c=>U.mode==="eng"?c.deck==="eng":!c.deck;
 const modeLive=()=>live().filter(inMode);
 const libCats=()=>U.mode==="eng"?ENG_ORDER.map(k=>({id:"en_"+k,...ENG_KINDS[k]})):cats();
 function engStart(){ let s=null; S.items.forEach(c=>{ if(c.deck==="eng"&&c.intro&&c.intro!=="mine"&&(!s||c.intro<s)) s=c.intro; }); return s; }
@@ -106,16 +106,16 @@ function engCardHTML(c,pos){
     else { b=(d.kind==="up"?`<div class="ek">Say it more elegantly</div><div class="eq">${esc(d.cloze).replace(/\[(.+?)\]/,"<s>$1</s>")}</div>`:`<div class="ek">${esc(d.cue)}</div><div class="eq">${esc(d.cloze)}</div>`)+
         (open?chips(opts)+(d.ex?`<div class="exr"><div class="ex">${hl(d.ex,plainOpts(opts))}</div>${sayBtn(d.ex)}</div>`:""):`<div class="reveal">Say it out loud – then tap</div>`); } }
   else if(d.kind==="wit"){
-    const reps=`<div class="ea small">${d.text.split(" / ").map(x=>"→ "+esc(x)).join("<br>")}</div>`;
+    const reps=`<div class="ans">${d.text.split(" / ").map(x=>`<div class="arow"><span>→ ${esc(x)}</span>${typeof starBtn==="function"?starBtn(x,"wit",d.cue):""}</div>`).join("")}</div>`;
     if(st<1){ step="learn"; b=`<div class="ek">${esc(d.tech)}</div><div class="eq">They say: <b>“${esc(d.cue)}”</b></div>${techTip(d.tech)?`<div class="tip">💡 ${esc(techTip(d.tech))}</div>`:""}${reps}<div class="yt"><b>Read the replies out loud, with a smile</b> – then invent one of your own.</div>`; }
     else { step="test"; b=`<div class="ek">${esc(d.tech)}</div><div class="eq">They say: <b>“${esc(d.cue)}”</b></div>`+(open?reps:`<div class="tbar"><i></i></div><div class="reveal">Reply out loud within 10 seconds – then tap</div>`); } }
   else { const keys=(d.keys||"").split(",").map(s=>s.trim()).filter(Boolean), kh=(d.wiki?`<img class="timg" data-wiki="${esc(d.wiki)}" alt="">`:"")+(keys.length?chipsK(keys):"");
-    if(st<1){ step="read"; b=`<div class="ek">${esc(d.tech||"")} · read it out loud</div><div class="ea small">${esc(d.text)}</div><div class="brief">${hl(d.ex,keys)}</div>${kh}<button class="btn small talk" data-talk="1">▶ Now tell it in 60 s</button>`; }
+    if(st<1){ step="read"; b=`<div class="ek">${esc(d.tech||"")} · read it out loud</div><div class="ea small">${esc(d.text)}</div><div class="brief">${hl(d.ex,keys)}</div>${kh}<div class="yt"><b>Then tell it out loud, in 3 steps:</b> ① What is it? ② The coloured facts. ③ Your opinion${d.cue?` – ${esc(d.cue)}`:""}</div>`; }
     else { step="retell"; b=`<div class="ek">${esc(d.tech||"")} · retell it</div><div class="ea small">${esc(d.text)}</div>${kh}`+(open?`<div class="brief">${hl(d.ex,keys)}</div>`
-      :`<div class="yt"><b>Tell it out loud using these key words</b> – then tap to check.${d.cue?`<br>Then ask someone: <i>${esc(d.cue)}</i>`:""}</div><button class="btn small talk" data-talk="1">▶ Talk 60 s</button>`); } }
+      :`<div class="yt"><b>Tell it out loud using the coloured key words</b> – ① what it is, ② the facts, ③ your opinion. Then tap to check.${d.cue?`<br>Then ask someone: <i>${esc(d.cue)}</i>`:""}</div>`); } }
   return `<div class="tc eng ${pos===1?"back1":pos===2?"back2":""}" ${top?'id="top"':""} data-id="${c.id}">
     <div class="band" style="background:${K.color}"></div>
-    <div class="head"><span class="tag" style="color:${K.color}">${K.emoji} ${K.name}</span><span class="hr"><span class="muted" style="font-size:13px">${step}</span>${top?`<button class="cdel" data-full="1" aria-label="Open the whole card">${U.full?"⤡":"⤢"}</button><button class="cdel" data-del="${c.id}" aria-label="Delete card">🗑</button>`:""}</span></div>
+    <div class="head"><span class="tag" style="color:${K.color}">${K.emoji} ${K.name}</span><span class="hr"><span class="muted" style="font-size:13px">${step}</span>${top?`${typeof starBtn==="function"&&d.kind!=="wit"&&d.kind!=="topic"?starBtn(d.text,"card",d.cue):""}<button class="cdel" data-full="1" aria-label="Open the whole card">${U.full?"⤡":"⤢"}</button><button class="cdel" data-del="${c.id}" aria-label="Delete card">🗑</button>`:""}</span></div>
     <div class="body">${b}</div>
     <div class="foot"><span>${c.seen?"seen "+c.seen+"×":"new"}</span><span>${c.grade==="easy"?"↑ easy last time":c.grade==="hard"?"↓ remind me":c.last==="know"?"✓ last time":c.last==="again"?"✕ last time":""}</span></div>
     <div class="stamp k" id="sk">GOT IT</div><div class="stamp a" id="sa">AGAIN</div><div class="stamp up" id="su">EASY</div><div class="stamp dn" id="sd">REMIND ME</div></div>`; }
@@ -134,7 +134,7 @@ function engDone(){
   const n=rows.filter(r=>p[r[0]]).length;
   return `<div class="panel"><h2 class="ph"><span>Today's plan</span><span class="muted">${n}/${rows.length}</span></h2>
     ${rows.map(([k,e,ti,sub])=>`<div class="plan ${p[k]?"on":""}" data-plan="${k}"><span class="ck">${p[k]?"✓":e}</span><span><b>${ti}</b><small>${sub}</small></span></div>`).join("")}
-    <div class="row" style="margin-top:14px"><button class="btn" id="practice">Practice more</button><button class="btn" data-offline="1">${LS.get("kc_offline",0)?"✈️ Offline ready – refresh":"✈️ Going offline? Save"}</button></div></div>`; }
+    <div class="row" style="margin-top:14px"><button class="btn" id="practice">Practice more</button><button class="btn main" data-go="gym">😄 Wit gym</button></div></div>`; }
 function engAdd(){ const a=U.add;
   return `<div class="top"><div><h1>New word</h1><p class="sub">Met a word or phrase while reading? Catch it.</p></div></div>
   <textarea class="hero" id="atext" placeholder="e.g. “meticulous”">${esc(a.text)}</textarea>
@@ -575,7 +575,9 @@ const _img={};
 async function wikiImg(t){ if(_img[t]!==undefined) return _img[t]; const k="kc_img2_"+t, c=LS.get(k,null); if(c!==null) return _img[t]=c;
   try{ const j=await (await fetch("https://en.wikipedia.org/api/rest_v1/page/summary/"+encodeURIComponent(t))).json();
     const u=j.thumbnail&&j.thumbnail.source?j.thumbnail.source.replace(/\/\d+px-/,"/500px-"):""; LS.set(k,u); return _img[t]=u; }catch(e){ return ""; } }
-function engImgs(){ document.querySelectorAll("img[data-wiki]:not([src])").forEach(async im=>{ const u=await wikiImg(im.dataset.wiki); if(u){ im.onerror=()=>im.remove(); im.src=u; } else im.remove(); }); }
+function autoPics(){ if(window._autoPics||!navigator.onLine||LS.get("kc_pics","")===today()) return; window._autoPics=1; LS.set("kc_pics",today());
+  setTimeout(async()=>{ for(const p of engPack().topic){ const u=p.wiki&&await wikiImg(p.wiki); if(u){ try{ await fetch(u,{mode:"no-cors"}); }catch(e){} } } },4000); }
+function engImgs(){ autoPics(); document.querySelectorAll("img[data-wiki]:not([src])").forEach(async im=>{ const u=await wikiImg(im.dataset.wiki); if(u){ im.onerror=()=>im.remove(); im.src=u; } else im.remove(); }); }
 async function prepOffline(btn){ btn.disabled=true; btn.textContent="Saving pictures…"; let n=0;
   for(const p of engPack().topic){ const u=p.wiki&&await wikiImg(p.wiki); if(u){ try{ await fetch(u,{mode:"no-cors"}); n++; }catch(e){} } }
   for(const f of ["./","index.html","core.js","eng.js"]) try{ await fetch(f); }catch(e){}
