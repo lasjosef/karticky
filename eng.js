@@ -6,13 +6,31 @@ const ENG_KINDS={
   word: {name:"Words",      emoji:"🧠", color:"#3e63dd", perDay:6},
   up:   {name:"Upgrades",   emoji:"🎩", color:"#8e4ec6", perDay:2},
   phr:  {name:"Phrases",    emoji:"🗣️", color:"#12a594", perDay:2},
-  wit:  {name:"Wit",        emoji:"😄", color:"#f5a524", perDay:2},
+  wit:  {name:"Wit",        emoji:"😄", color:"#f5a524", perDay:4},
   topic:{name:"Topic talk", emoji:"🌍", color:"#30a46c", perDay:1}};
 const ENG_ORDER=["word","up","phr","wit","topic"];
 const PHASES=["Fluency","Fluency","Fluency","Fluency","Style","Style","Style","Style","Performance","Performance","Performance","Performance"];
 const SPEAKERS=[["David Attenborough","David Attenborough narration"],["Stephen Fry","Stephen Fry speech"],["Winston Churchill","Churchill we shall fight on the beaches speech"],["C. S. Lewis","C.S. Lewis BBC radio talk recording"],["Martin Luther King","Martin Luther King I have a dream full speech"],["John F. Kennedy","JFK we choose to go to the moon speech"],["Letters Live – Benedict Cumberbatch","Letters Live Benedict Cumberbatch"],["Alan Watts","Alan Watts lecture"],["Rowan Williams","Rowan Williams lecture"],["Sir Ken Robinson","Ken Robinson do schools kill creativity"]];
 const REG={everyday:["Everyday","#646f80"],precise:["Precise","#3e63dd"],elegant:["✨ Elegant","#ab6400"]};
 const YOUR_TURN=["something at work","the gym or sport","your weekend","a friend or someone in your family","food or cooking","a trip you took","something that happened today","someone you admire"];
+// how each humour technique works – shown on the card the first time
+const TECH_TIPS={"Understatement":"Say far LESS than the truth, calmly. Big disaster – tiny words. The classic British joke.",
+ "Exaggeration":"Blow it up to an impossible size – and paint a picture (the penguin, the postcode).",
+ "Taking it literally":"Pretend you understood the words exactly as they are. Works best with idioms.",
+ "Agree and amplify":"Never defend yourself. Agree – then make it even bigger. Pure confidence.",
+ "Self-deprecation":"Laugh at a small weakness, lightly and confidently – never at something you're really insecure about.",
+ "Callback":"Remember what they said earlier and bring it back later. Shared history = the biggest laughs.",
+ "Playful tease":"Tease about something they chose, never about something they can't change. Smile while you say it.",
+ "Misdirection":"Start like a normal answer, then twist it. The surprise must be the very last words.",
+ "Rule of three":"Two normal things, then a surprising third. The rhythm does half the work.",
+ "Role reversal":"Flip their question or accusation straight back on them – light and playful.",
+ "Playful accusation":"From one small thing they said, 'accuse' them of something cute.",
+ "Mock seriousness":"Treat something tiny like a national crisis – serious voice, ridiculous words.",
+ "Absurd comparison":"Compare it to something wildly bigger or stranger. Concrete pictures are funnier.",
+ "Deadpan":"Say something absurd with a completely straight face. Don't laugh at your own joke.",
+ "Push-pull":"A compliment and a tease in one breath. Warm, never needy.",
+ "Quick comeback":"When teased: don't defend, don't attack. Accept it with style – or agree and twist it."};
+const techTip=t=>TECH_TIPS[String(t||"").split(" – ")[0].trim()]||"";
 const ENG_RAW={};
 let _engPack=null, _engById=null;
 function engPack(){ if(_engPack) return _engPack; const P={};
@@ -89,7 +107,7 @@ function engCardHTML(c,pos){
         (open?chips(opts)+(d.ex?`<div class="exr"><div class="ex">${hl(d.ex,plainOpts(opts))}</div>${sayBtn(d.ex)}</div>`:""):`<div class="reveal">Say it out loud – then tap</div>`); } }
   else if(d.kind==="wit"){
     const reps=`<div class="ea small">${d.text.split(" / ").map(x=>"→ "+esc(x)).join("<br>")}</div>`;
-    if(st<1){ step="learn"; b=`<div class="ek">${esc(d.tech)}</div><div class="eq">They say: <b>“${esc(d.cue)}”</b></div>${reps}<div class="yt"><b>Read the replies out loud, with a smile</b> – then invent one of your own.</div>`; }
+    if(st<1){ step="learn"; b=`<div class="ek">${esc(d.tech)}</div><div class="eq">They say: <b>“${esc(d.cue)}”</b></div>${techTip(d.tech)?`<div class="tip">💡 ${esc(techTip(d.tech))}</div>`:""}${reps}<div class="yt"><b>Read the replies out loud, with a smile</b> – then invent one of your own.</div>`; }
     else { step="test"; b=`<div class="ek">${esc(d.tech)}</div><div class="eq">They say: <b>“${esc(d.cue)}”</b></div>`+(open?reps:`<div class="tbar"><i></i></div><div class="reveal">Reply out loud within 10 seconds – then tap</div>`); } }
   else { const keys=(d.keys||"").split(",").map(s=>s.trim()).filter(Boolean), kh=(d.wiki?`<img class="timg" data-wiki="${esc(d.wiki)}" alt="">`:"")+(keys.length?chipsK(keys):"");
     if(st<1){ step="read"; b=`<div class="ek">${esc(d.tech||"")} · read it out loud</div><div class="ea small">${esc(d.text)}</div><div class="brief">${hl(d.ex,keys)}</div>${kh}<button class="btn small talk" data-talk="1">▶ Now tell it in 60 s</button>`; }
@@ -434,6 +452,84 @@ Playful tease – light, warm, never cruel | I'm a really good driver. | Of cour
 Playful tease – light, warm, never cruel | I don't really like chocolate. | I'm not sure we can be friends. / Are you sure you're from this planet?
 Playful tease – light, warm, never cruel | I'm a bit of a perfectionist. | I noticed – you've fixed your hair four times since we sat down. / Then you'll love me – I'm a nearly-perfectionist.
 Playful tease – light, warm, never cruel | Guess how old I am. | Twenty-one – and I'm sticking to it whatever you say. / Old enough to know better, young enough to do it anyway.
+Misdirection – start normal, end with a twist | Are you a patient person? | Extremely patient – as long as it happens right now. / Very. I once waited a whole two minutes for a coffee.
+Misdirection – start normal, end with a twist | Do you like cooking? | I love cooking. Mostly watching other people do it. / Yes – my speciality is ordering pizza.
+Misdirection – start normal, end with a twist | Are you good with money? | Very. It leaves me, but always politely. / I'm brilliant at saving – I just haven't started yet.
+Misdirection – start normal, end with a twist | What's your biggest weakness? | I'm too humble. Honestly, it's my best quality. / Chocolate. Also my biggest strength.
+Misdirection – start normal, end with a twist | Do you go to the gym? | Religiously. I pray I'll survive leg day. / Four times a week – twice to train, twice to visit the vending machine.
+Misdirection – start normal, end with a twist | Do you have any hidden talents? | Yes, but they're very well hidden. Even from me. / I can fall asleep anywhere. Standing up. In meetings.
+Misdirection – start normal, end with a twist | Do you like Mondays? | I love Mondays – from a safe distance. / Mondays are great, especially once they're over.
+Misdirection – start normal, end with a twist | Is your English good? | Very good. I make mistakes in perfect grammar. / Good enough to apologise for it beautifully.
+Rule of three – two normal things, then a surprise | What do you need for a good weekend? | Good food, good friends, and a strong excuse to skip the gym. / Sun, a lake, and nobody asking me to help them move.
+Rule of three – two normal things, then a surprise | What's in your fridge? | Milk, eggs, and a lemon from 2019. / Butter, cheese, and a vegetable I bought to feel better about myself.
+Rule of three – two normal things, then a surprise | Why did you pick this café? | The coffee, the music, and chairs that don't argue with me. / Good coffee, nice light – and you were here.
+Rule of three – two normal things, then a surprise | What makes a man attractive? | Kindness, confidence, and building IKEA furniture without crying. / Honesty, humour, and a car that starts in winter.
+Rule of three – two normal things, then a surprise | What did you learn at school? | Reading, writing, and how to look busy when the teacher walks past. / Maths, history, and the exact sound of the last bell.
+Rule of three – two normal things, then a surprise | Describe your perfect date. | A walk, a good dinner, and a waiter who doesn't ask every four minutes how everything is. / Mountains, a sunset, and someone who laughs at my jokes – like you're about to.
+Rule of three – two normal things, then a surprise | What do you actually do at work? | Answer emails, solve problems, and pretend to understand Excel. / Meetings, coffee, and occasionally some actual work.
+Rule of three – two normal things, then a surprise | How was your holiday? | Sun, sea, and a sunburn in the shape of my T-shirt. / Great food, great views, and a suitcase that came home heavier than me.
+Role reversal – flip it back on them | Are you flirting with me? | I was just about to ask you the same thing. / I'm not sure – how am I doing?
+Role reversal – flip it back on them | You're staring at me. | Funny – I was about to say the same about you. / I was admiring the view. You happen to be in it.
+Role reversal – flip it back on them | Stop making me laugh! | Then stop laughing at everything I say. / I'll try – if you stop being such a good audience.
+Role reversal – flip it back on them | You think you're charming, don't you? | I was hoping you'd tell me. / Only around you – you bring it out in me.
+Role reversal – flip it back on them | Are you always this confident? | Are you always this curious? / Only when someone smiles at me like that.
+Role reversal – flip it back on them | Why are you being so nice to me? | You started it. I'm just keeping up. / I'm practising for when you're nice to me.
+Role reversal – flip it back on them | You're hard to read. | Good – then you'll have to keep reading. / So are you. Let's take turns.
+Role reversal – flip it back on them | Do you come here often? | I was going to ask you that. / Only on days when interesting people are here – so, today.
+Playful accusation – accuse them of something small and cute | I love dogs. | So you're one of those people who stops every dog in the street. I knew it. / That explains your very trustworthy face.
+Playful accusation – accuse them of something small and cute | I've never seen Star Wars. | What have you been doing with your life? / I'm going to need a moment.
+Playful accusation – accuse them of something small and cute | I put pineapple on pizza. | I'm sorry, I'll have to report this. / I'll pretend I didn't hear that – for your sake.
+Playful accusation – accuse them of something small and cute | I'm always cold. | So you're the one who steals all the blankets. / Noted – you get the seat by the radiator.
+Playful accusation – accuse them of something small and cute | I don't drink coffee. | Are you a spy? Everybody drinks coffee. / And yet you look so trustworthy.
+Playful accusation – accuse them of something small and cute | I've read that book three times. | Show-off. I'm still on the cover. / So you're the clever one here. Good to know.
+Playful accusation – accuse them of something small and cute | I spend a lot on shoes. | So you're the reason the shoe shop is still open. / Then you're definitely not walking home in those.
+Playful accusation – accuse them of something small and cute | I'm a vegetarian. | So the steak was a test, and I failed it. / The cows must send you thank-you cards.
+Mock seriousness – treat a tiny thing like a crisis | I ate the last biscuit. | I'll need some time to process this betrayal. / This changes everything between us.
+Mock seriousness – treat a tiny thing like a crisis | I forgot your birthday. | I've already informed my lawyer. / It's fine. I've only marked it as a national day of mourning.
+Mock seriousness – treat a tiny thing like a crisis | Can I borrow your pen? | That's a big commitment. I'll need two references. / Yes – but return it personally, with a short speech.
+Mock seriousness – treat a tiny thing like a crisis | I don't like your hat. | Please lower your voice – it can hear you. / I'll pass that on. It's very sensitive.
+Mock seriousness – treat a tiny thing like a crisis | I'm five minutes late. | Five whole minutes? I almost called the police. / I'd already started writing your obituary.
+Mock seriousness – treat a tiny thing like a crisis | I beat you at chess. | We will never speak of this again. / I let you win. It's a very long-term strategy.
+Mock seriousness – treat a tiny thing like a crisis | Can I sit here? | Let me check with the committee… approved. / Only if you promise to be interesting.
+Mock seriousness – treat a tiny thing like a crisis | You've got a bit of sauce on your shirt. | Thank you. I'll be taking the rest of the day off. / That's not sauce – it's a fashion statement.
+Absurd comparison – compare it to something ridiculous | How's your new flat? | It's so small I have to go outside to change my mind. / Cosy. Like a shoebox with Wi-Fi.
+Absurd comparison – compare it to something ridiculous | Is your boss strict? | He'd fine the sun for rising late. / He makes a sergeant look like a kindergarten teacher.
+Absurd comparison – compare it to something ridiculous | How's your car? | It's so old it gets a pension. / It's not a car – it's a family member with wheels.
+Absurd comparison – compare it to something ridiculous | Was the exam hard? | Harder than parking in Prague on a Friday. / Like assembling furniture in the dark with oven gloves on.
+Absurd comparison – compare it to something ridiculous | How was the flight? | So bumpy I'm now fluent in turbulence. / Like sleeping in a washing machine – an expensive one.
+Absurd comparison – compare it to something ridiculous | Is your town exciting? | The traffic lights are the main event. / We have one roundabout. People come from miles to see it.
+Absurd comparison – compare it to something ridiculous | How spicy was the curry? | I could see colours that don't exist. / I think I lost the feeling in my ancestors.
+Absurd comparison – compare it to something ridiculous | How busy is your week? | Busier than a bee with two jobs. / If my calendar were a city, it would be Tokyo at rush hour.
+Deadpan – say something silly with a completely straight face | Did you really climb that mountain? | Yes. Twice. The second time to fetch my sunglasses. / Of course. Backwards, in flip-flops.
+Deadpan – say something silly with a completely straight face | Do you have any pets? | A plant. We don't talk much. / Just a spider in the corner. We have an understanding.
+Deadpan – say something silly with a completely straight face | You look tired – are you OK? | I'm fine. I've just been awake since birth. / I'm in energy-saving mode.
+Deadpan – say something silly with a completely straight face | Is this your first time here? | No, I live here. Under that table. / I'm a chair inspector. This one passes.
+Deadpan – say something silly with a completely straight face | How do you stay so calm? | Years of training and very low expectations. / I'm screaming inside. Very politely.
+Deadpan – say something silly with a completely straight face | Why are you smiling? | I just remembered I'm brilliant. / I'm practising. Did it look natural?
+Deadpan – say something silly with a completely straight face | What's your secret to staying fit? | I carry all the shopping in one trip. Every time. Whatever the cost. / I run late. Constantly.
+Deadpan – say something silly with a completely straight face | Can you keep a secret? | Absolutely. It's the people I tell who can't. / Yes. I've forgotten most of them already.
+Push-pull – a compliment and a tease in one breath | Do you like my dress? | You look wonderful – almost too good to be seen with me. Almost. / It's lovely. Now everyone else looks underdressed, and that's on you.
+Push-pull – a compliment and a tease in one breath | I made this cake myself. | It's delicious. Now tell me who really made it. / A woman of many talents. I'm a little intimidated.
+Push-pull – a compliment and a tease in one breath | I'm great at karaoke. | I believe you. I'll still bring earplugs, just in case. / Then you're singing first – I need time to prepare my excuses.
+Push-pull – a compliment and a tease in one breath | I'm usually very shy. | You're doing a terrible job of it – and I love it. / Shy? You've been running this conversation for an hour.
+Push-pull – a compliment and a tease in one breath | I'm a great cook. | Then I'm inviting myself to dinner. With a backup pizza. / Prove it. I'm a very harsh critic – I give everything ten out of ten.
+Push-pull – a compliment and a tease in one breath | I'm smarter than you. | Probably. But I'm better looking – let's call it even. / Fine. You do the thinking, I'll do the talking.
+Push-pull – a compliment and a tease in one breath | You're funny. | And you're a fantastic audience. We should go on tour. / I know. You're not bad yourself – for a beginner.
+Push-pull – a compliment and a tease in one breath | I always win at board games. | Then I'm on your team. Or I'm hiding the dice. / Good – I like a challenge. And I cheat beautifully.
+Callback – bring back something from earlier | (Earlier she said she's terrible with directions.) "Shall we go?" | Lead the way – I'm curious where we'll end up. / Of course. Shall I pack food for the journey?
+Callback – bring back something from earlier | (Earlier he said he's on a strict diet. Now he orders dessert.) | Ah – the famous diet. / I see the diet is going beautifully.
+Callback – bring back something from earlier | (Earlier she said she hates the cold. Now it starts snowing.) | Your favourite weather! / Shall I call summer and tell it to hurry up?
+Callback – bring back something from earlier | (Earlier you said you sing terribly. Now someone suggests karaoke.) | Finally – my moment to clear the room. / Nobody can say I didn't warn them.
+Callback – bring back something from earlier | (Earlier he said he's never late. He arrives twenty minutes late.) | Ah, Mr Never-Late. Welcome. / I wasn't worried – I knew you're never late.
+Callback – bring back something from earlier | (Earlier she said she can eat anything. The food is very spicy and she's sweating.) | So… about eating anything. / Shall I call the fire brigade, or are you fine?
+Quick comeback – when they tease you | Nice shoes – did your mum buy them? | She did, and she has excellent taste. / No, but I'll tell her you like them.
+Quick comeback – when they tease you | You're getting old. | Like fine wine. And cheese. / Old enough to know better, young enough to ignore it.
+Quick comeback – when they tease you | Your accent is funny. | Thank you – I worked hard on it. / Wait till you hear my Czech.
+Quick comeback – when they tease you | You look like you just woke up. | I did. Impressive, isn't it? / It's a look. It's called "effortless".
+Quick comeback – when they tease you | Is that your car? It's tiny! | Small car, big heart. / It's not small, it's efficient. Like me.
+Quick comeback – when they tease you | You're terrible at this. | I know – I'm saving my talent for something important. / Thank you. I've worked very hard to be this bad.
+Quick comeback – when they tease you | You talk like a professor. | Thank you. I'll take questions at the end. / Please – call me Professor.
+Quick comeback – when they tease you | You're not as funny as you think. | Nobody could be that funny. / Good – that leaves room to grow.
 `;
 
 ENG_RAW.topic=String.raw`
