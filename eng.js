@@ -462,9 +462,9 @@ const ENG_TOPIC_WIKI=["Mona_Lisa","Venice","New_York_Stock_Exchange","Octopus","
 
 // pictures from Wikipedia – once loaded, the service worker keeps them for offline use
 const _img={};
-async function wikiImg(t){ if(_img[t]!==undefined) return _img[t]; const k="kc_img_"+t, c=LS.get(k,null); if(c!==null) return _img[t]=c;
+async function wikiImg(t){ if(_img[t]!==undefined) return _img[t]; const k="kc_img2_"+t, c=LS.get(k,null); if(c!==null) return _img[t]=c;
   try{ const j=await (await fetch("https://en.wikipedia.org/api/rest_v1/page/summary/"+encodeURIComponent(t))).json();
-    const u=j.thumbnail&&j.thumbnail.source?j.thumbnail.source.replace(/\/\d+px-/,"/640px-"):""; LS.set(k,u); return _img[t]=u; }catch(e){ return ""; } }
+    const u=j.thumbnail&&j.thumbnail.source?j.thumbnail.source.replace(/\/\d+px-/,"/500px-"):""; LS.set(k,u); return _img[t]=u; }catch(e){ return ""; } }
 function engImgs(){ document.querySelectorAll("img[data-wiki]:not([src])").forEach(async im=>{ const u=await wikiImg(im.dataset.wiki); if(u){ im.onerror=()=>im.remove(); im.src=u; } else im.remove(); }); }
 async function prepOffline(btn){ btn.disabled=true; btn.textContent="Saving pictures…"; let n=0;
   for(const p of engPack().topic){ const u=p.wiki&&await wikiImg(p.wiki); if(u){ try{ await fetch(u,{mode:"no-cors"}); n++; }catch(e){} } }
