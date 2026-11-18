@@ -145,6 +145,25 @@ nav .badge{position:absolute;top:3px;right:9px;background:#e5484d;color:#fff;fon
 .plan.on .ck{background:var(--know);color:#fff;font-weight:700}
 .plan b{display:block;font-size:16px}.plan small{display:block;color:var(--muted);font-size:14px;line-height:1.4;margin-top:2px}
 .plan.on b{text-decoration:line-through;opacity:.6}
+.tc .say{flex:0 0 38px;width:38px;height:38px;border-radius:50%;background:var(--soft);font-size:17px;display:flex;align-items:center;justify-content:center}
+.tc .wrow{display:flex;align-items:center;gap:10px}
+.tc .exr{display:flex;gap:8px;align-items:flex-start}.tc .exr .ex{flex:1}
+.tc .pron{font-size:15px;color:var(--muted);letter-spacing:.5px;margin-top:-8px}
+.tc .yt{font-size:15px;line-height:1.4;background:var(--soft);border-radius:14px;padding:10px 12px}
+.reg{display:inline-block;font-family:"Barlow Condensed",sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--c);border:1.5px solid var(--c);border-radius:999px;padding:0 8px;vertical-align:middle;margin-left:4px}
+.tc .opts{display:flex;flex-wrap:wrap;gap:6px}
+.tc .opts span{background:var(--soft);padding:6px 11px;border-radius:12px;font-weight:700;font-size:17px}
+.tc .alt{font-size:15px;color:var(--muted)}
+.tc .blank{color:#3e63dd;font-weight:800}
+.tc s{color:var(--muted)}
+.tc .timg{width:100%;height:120px;object-fit:cover;border-radius:16px;background:var(--soft);flex:0 0 auto}
+.tc.eng .brief{font-size:15px}
+.stamp.up{left:50%;top:auto;bottom:70px;color:#3e63dd;transform:translateX(-50%)}
+.stamp.dn{left:50%;color:#f5a524;transform:translateX(-50%)}
+.actions.four{gap:12px}
+.actions.four .round{width:58px;height:58px;font-size:24px}
+.actions.four .round.u{width:42px;height:42px;font-size:17px}
+.round.h{color:#f5a524}.round.e{color:#3e63dd}
 .hidden{display:none!important}
 </style>
 </head>
@@ -362,8 +381,9 @@ function vToday(){
   }
   h+=`<div class="deck" id="deck">`;
   list.slice(0,3).reverse().forEach((c,i,arr)=>{ const pos=arr.length-1-i; h+=cardHTML(c,pos); });
-  h+=`</div><div class="actions"><button class="round a" id="again" title="Not yet (←)">✕</button>${U.undo?`<button class="round u" id="undo" title="Undo">↶</button>`:""}<button class="round k" id="know" title="I know it (→)">✓</button></div>
-  <p class="hintrow">Swipe right if you know it · left if not yet${matchMedia("(pointer:fine)").matches?" · or use ← →":""}</p>`;
+  h+=`</div>`+(eng?`<div class="actions four"><button class="round a" id="again" title="Don't know (←)">✕</button><button class="round h" id="hard" title="I kinda know it – remind me (↓)">↓</button>${U.undo?`<button class="round u" id="undo" title="Undo">↶</button>`:""}<button class="round k" id="know" title="Got it (→)">✓</button><button class="round e" id="easy" title="Easy – I already use it (↑)">↑</button></div>
+  <p class="hintrow">← don't know · ↓ remind me · → got it · ↑ easy, I use it</p>`:"")+`<div class="actions ${eng?"hidden":""}"><button class="round a" id="again" title="Not yet (←)">✕</button>${U.undo?`<button class="round u" id="undo" title="Undo">↶</button>`:""}<button class="round k" id="know" title="I know it (→)">✓</button></div>
+  <p class="hintrow ${eng?"hidden":""}">Swipe right if you know it · left if not yet${matchMedia("(pointer:fine)").matches?" · or use ← →":""}</p>`;
   return h;
 }
 function cardHTML(c,pos,isInbox){
@@ -510,7 +530,7 @@ function render(){
   nav.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.tab===U.tab));
   const n=dueCards(S.items).length+inboxCards().length, tb=nav.querySelector('[data-tab="today"]'); tb.querySelector(".badge")?.remove();
   if(n&&U.tab!=="today") tb.insertAdjacentHTML("beforeend",`<span class="badge">${n}</span>`);
-  if(U.tab==="today") bindDeck();
+  if(U.tab==="today"){ bindDeck(); if(typeof engImgs==="function") engImgs(); }
 }
 function go(tab){ if(!TABS.includes(tab)) tab="today"; U.tab=tab; U.open=null; U.edit=null; U.confirm=null; U.confirmOut=false; U.revealed=false;
   if(tab==="today") U.queue=U.queue&&U.practice?U.queue:null; try{history.replaceState(null,"",REDIRECT+"#"+tab);}catch(e){}
@@ -518,40 +538,43 @@ function go(tab){ if(!TABS.includes(tab)) tab="today"; U.tab=tab; U.open=null; U
 
 /* ---------- swiping ---------- */
 let dragging=false;
-function answerTop(know){
+function answerTop(g){ if(typeof g==="boolean") g=g?"good":"again"; const know=g!=="again";
   if(U.inbox){ const c=inboxCards()[0]; if(!c) return; U.revealed=false;
     if(know){ saveCard({...c,inbox:false,fromInbox:true,level:1,due:nextFreeDay()}); toast("Kept"); }
     else { deleteCard(c.id); }
     render(); return; }
   const list=currentCards(); if(!list.length) return; const c=list[0];
-  U.undo={...c}; const n=swipeCard(c,know,U.practice); U.done++; U.revealed=false;
+  U.undo={...c}; const n=gradeCard(c,g,U.practice); U.done++; U.revealed=false;
   U.queue=U.queue.filter(id=>id!==c.id);
   if(!know&&!U.retry.has(c.id)){ U.retry.add(c.id); U.queue.push(c.id); } // one more try at the end of today's stack
   saveCard(n); render();
 }
-function flyOut(know){ const el=document.getElementById("top"); if(!el) return answerTop(know);
-  el.style.transition="transform .28s ease-in, opacity .28s"; el.style.transform=`translateX(${know?140:-140}%) rotate(${know?24:-24}deg)`; el.style.opacity="0";
-  setTimeout(()=>answerTop(know),230); }
+function flyOut(g){ if(typeof g==="boolean") g=g?"good":"again"; const el=document.getElementById("top"); if(!el) return answerTop(g);
+  el.style.transition="transform .28s ease-in, opacity .28s"; el.style.transform={good:"translateX(140%) rotate(24deg)",again:"translateX(-140%) rotate(-24deg)",easy:"translateY(-130%)",hard:"translateY(130%)"}[g]; el.style.opacity="0";
+  setTimeout(()=>answerTop(g),230); }
 function bindDeck(){
   const el=document.getElementById("top"); if(!el) return;
   let x0=0,y0=0,dx=0,dy=0,id=null,moved=false,t0=0;
-  const sk=el.querySelector("#sk"), sa=el.querySelector("#sa");
-  const reset=()=>{ el.style.transition="transform .25s"; el.style.transform=""; sk.style.opacity=0; sa.style.opacity=0; };
+  const sk=el.querySelector("#sk"), sa=el.querySelector("#sa"), su=el.querySelector("#su"), sd=el.querySelector("#sd"), op=(x,v)=>{ if(x) x.style.opacity=v; };
+  const reset=()=>{ el.style.transition="transform .25s"; el.style.transform=""; op(sk,0); op(sa,0); op(su,0); op(sd,0); };
   el.addEventListener("pointerdown",e=>{ if(e.target.closest("a,button")||(e.pointerType==="mouse"&&e.button!==0)) return;
     id=e.pointerId; x0=e.clientX; y0=e.clientY; dx=dy=0; moved=false; t0=Date.now(); dragging=true;
     try{ el.setPointerCapture(id); }catch(err){} el.style.transition="none"; });
   el.addEventListener("pointermove",e=>{ if(e.pointerId!==id) return; e.preventDefault();
     dx=e.clientX-x0; dy=e.clientY-y0; if(Math.abs(dx)>8||Math.abs(dy)>8) moved=true;
-    el.style.transform=`translate(${dx}px,${dy*0.15}px) rotate(${dx/18}deg)`;
-    sk.style.opacity=Math.max(0,Math.min(1,dx/80)); sa.style.opacity=Math.max(0,Math.min(1,-dx/80)); });
+    const vert=!!su&&Math.abs(dy)>Math.abs(dx), cl=x=>Math.max(0,Math.min(1,x));
+    el.style.transform=vert?`translate(${dx*0.3}px,${dy}px)`:`translate(${dx}px,${dy*0.15}px) rotate(${dx/18}deg)`;
+    op(sk,vert?0:cl(dx/80)); op(sa,vert?0:cl(-dx/80)); op(su,vert?cl(-dy/80):0); op(sd,vert?cl(dy/80):0); });
   el.addEventListener("pointerup",e=>{ if(e.pointerId!==id) return; id=null; dragging=false;
     const fast=Math.abs(dx)>40&&Date.now()-t0<250; // a quick flick counts too
-    if(Math.abs(dx)>80||fast){ flyOut(dx>0); return; }
+    const vert=!!su&&Math.abs(dy)>Math.abs(dx);
+    if(vert&&(Math.abs(dy)>80||(Math.abs(dy)>40&&Date.now()-t0<250))){ flyOut(dy<0?"easy":"hard"); return; }
+    if(!vert&&(Math.abs(dx)>80||fast)){ flyOut(dx>0?"good":"again"); return; }
     reset(); if(!moved){ U.revealed=!U.revealed; render(); } });
   el.addEventListener("pointercancel",e=>{ if(e.pointerId!==id) return; id=null; dragging=false; reset(); });
 }
 document.addEventListener("keydown",e=>{ if(U.tab!=="today"||busy()) return; if(U.inbox&&e.key===" ") return;
-  if(e.key==="ArrowRight") flyOut(true); else if(e.key==="ArrowLeft") flyOut(false); else if(e.key===" "){ e.preventDefault(); U.revealed=!U.revealed; render(); } });
+  if(e.key==="ArrowRight") flyOut(true); else if(e.key==="ArrowLeft") flyOut(false); else if(e.key==="ArrowUp"&&U.mode==="eng"){ e.preventDefault(); flyOut("easy"); } else if(e.key==="ArrowDown"&&U.mode==="eng"){ e.preventDefault(); flyOut("hard"); } else if(e.key===" "){ e.preventDefault(); U.revealed=!U.revealed; render(); } });
 
 /* ---------- clicks ---------- */
 document.getElementById("nav").addEventListener("click",e=>{ const b=e.target.closest("button"); if(b) go(b.dataset.tab); });
@@ -560,6 +583,8 @@ document.getElementById("app").addEventListener("click",async e=>{
   if(t.dataset.mode){ U.mode=t.dataset.mode; LS.set("kc_mode",U.mode); U.queue=null; U.revealed=false; U.undo=null; U.filter=null; return render(); }
   if(t.dataset.plan){ if(e.target.closest("a")) return; const k="kc_plan_"+today(), p=LS.get(k,{}); p[t.dataset.plan]=!p[t.dataset.plan]; LS.set(k,p); return render(); }
   if(t.dataset.talk) return startTalk(t);
+  if(t.dataset.say!==undefined) return say(t.dataset.say);
+  if(t.dataset.offline) return prepOffline(t);
   if(id==="glogin"||id==="relogin") return login();
   if(t.dataset.go) return go(t.dataset.go);
   if(id==="inboxopen"){ U.inbox=true; render(); window.scrollTo(0,0); return; }
@@ -567,6 +592,8 @@ document.getElementById("app").addEventListener("click",async e=>{
   if(t.dataset.del){ const c=S.items.find(x=>x.id===t.dataset.del); if(!c) return; U.undo={...c}; U.revealed=false;
     U.queue=(U.queue||[]).filter(x=>x!==c.id); deleteCard(c.id); render(); return toast("Deleted · ↶ to undo"); }
   if(id==="know") return flyOut(true);
+  if(id==="easy") return flyOut("easy");
+  if(id==="hard") return flyOut("hard");
   if(id==="again") return flyOut(false);
   if(id==="undo"&&U.undo){ const c={...U.undo}; U.undo=null; U.queue=[c.id,...(U.queue||[]).filter(x=>x!==c.id)]; U.done=Math.max(0,U.done-1); if(c.due>today()) U.retry.add(c.id); saveCard(c); render(); return; }
   if(id==="practice"){ const all=modeLive().sort(()=>Math.random()-.5).slice(0,10); U.queue=all.map(c=>c.id); U.practice=true; U.retry=new Set(); render(); return; }
