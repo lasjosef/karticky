@@ -123,6 +123,28 @@ nav .badge{position:absolute;top:3px;right:9px;background:#e5484d;color:#fff;fon
 .inboxbar span:first-child{font-size:22px}.inboxbar b{flex:1;font-size:15px}.inboxbar .go{color:#3e63dd;font-weight:700;font-size:14px;white-space:nowrap}
 .tc .hr{display:flex;align-items:center;gap:8px}
 .cdel{width:34px;height:34px;border-radius:50%;background:var(--soft);font-size:15px;display:flex;align-items:center;justify-content:center;opacity:.75}
+.seg{display:flex;background:var(--soft);border-radius:14px;padding:4px;gap:4px;margin:0 0 14px}
+.seg button{flex:1;padding:9px;border-radius:11px;font-weight:700;font-size:15px;color:var(--muted)}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.tc .ek{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:14px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
+.tc .eq{font-size:22px;line-height:1.3;font-weight:600}
+.tc .ea{font-family:"Barlow Condensed",sans-serif;font-size:38px;line-height:1.1;font-weight:700}
+.tc .ea.small{font-family:inherit;font-size:21px;line-height:1.35}
+.tc .ex{font-size:16px;font-style:italic;color:var(--muted);line-height:1.4}
+.tc .etr{font-size:15px;color:var(--muted)}
+.tc .hint{font-size:26px;letter-spacing:2px;font-weight:700;color:var(--muted)}
+.tc .brief{font-size:16px;line-height:1.45}
+.tc .talk{align-self:flex-start}
+.tc.eng .body{gap:12px}
+.tbar{height:6px;border-radius:3px;background:var(--soft);overflow:hidden}
+.tbar i{display:block;height:100%;width:100%;background:#f5a524;animation:tbar 10s linear forwards}
+@keyframes tbar{to{width:0}}
+.ph{display:flex;justify-content:space-between;align-items:baseline;font-family:"Barlow Condensed",sans-serif;text-transform:uppercase;font-size:24px;margin:0 0 6px}
+.plan{display:flex;gap:12px;align-items:flex-start;padding:12px 2px;border-top:1px solid var(--line);cursor:pointer}
+.plan .ck{flex:0 0 28px;height:28px;border-radius:50%;background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:14px}
+.plan.on .ck{background:var(--know);color:#fff;font-weight:700}
+.plan b{display:block;font-size:16px}.plan small{display:block;color:var(--muted);font-size:14px;line-height:1.4;margin-top:2px}
+.plan.on b{text-decoration:line-through;opacity:.6}
 .hidden{display:none!important}
 </style>
 </head>
@@ -137,6 +159,7 @@ nav .badge{position:absolute;top:3px;right:9px;background:#e5484d;color:#fff;fon
 </nav>
 <div class="toast" id="toast"></div>
 <script src="core.js"></script>
+<script src="eng.js"></script>
 <script>
 /* ================= Google sign-in + Drive (your own Drive, folder "Karticky") ================= */
 const CLIENT_ID="442015155431-ibljcsrig896c9ds3isod4utsbko7pbv.apps.googleusercontent.com";
@@ -228,7 +251,7 @@ setInterval(()=>{ if(document.visibilityState==="visible"&&Date.now()-lastPull>1
 /* ================= local data ================= */
 let S=emptyData();
 const cats=()=>S.cats&&S.cats.length?S.cats.concat(DEFAULT_CATS.filter(d=>!S.cats.some(c=>c.id===d.id))):DEFAULT_CATS;
-const catOf=id=>cats().find(c=>c.id===id)||{id:"other",name:"Other",emoji:"✨",color:"#8b8d98"};
+const catOf=id=>(id&&id.startsWith("en_")&&ENG_KINDS[id.slice(3)]?{id,...ENG_KINDS[id.slice(3)]}:null)||cats().find(c=>c.id===id)||{id:"other",name:"Other",emoji:"✨",color:"#8b8d98"};
 const live=()=>S.items.filter(c=>!c.del&&!c.inbox);
 const inboxCards=()=>S.items.filter(c=>!c.del&&c.inbox).sort((a,b)=>(a.order||0)-(b.order||0));
 const NEW_PER_DAY=10;
@@ -279,7 +302,7 @@ function purgeStarter(){ let n=0; S.items=S.items.map(c=>{ if(c.starter&&!c.del)
 
 /* ================= UI state ================= */
 const TABS=["today","lib","add","set","me"];
-const U={tab:"today",queue:null,retry:new Set(),practice:false,done:0,undo:null,
+const U={tab:"today",mode:LS.get("kc_mode","eng"),queue:null,retry:new Set(),practice:false,done:0,undo:null,
   add:{text:"",cue:"",note:"",cat:null,auto:true,intent:1,more:false},
   q:"",filter:null,open:null,edit:null,confirm:null,newCat:false,confirmOut:false};
 const esc=s=>String(s??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
@@ -303,7 +326,7 @@ function vLogin(){
   </div>`;
 }
 
-function buildQueue(){ U.queue=dueCards(S.items).map(c=>c.id); U.retry=new Set(); U.done=0; U.practice=false; }
+function buildQueue(){ if(U.mode==="eng") introduceEng(); const ord=c=>c.deck==="eng"?ENG_ORDER.indexOf(c.kind):0; U.queue=dueCards(S.items).filter(inMode).map((c,i)=>[c,i]).sort((a,b)=>ord(a[0])-ord(b[0])||a[1]-b[1]).map(x=>x[0].id); U.retry=new Set(); U.done=0; U.practice=false; }
 function currentCards(){
   if(!U.queue) buildQueue();
   const t=today();
@@ -322,9 +345,11 @@ function vInbox(){
 function vToday(){
   if(U.inbox) return vInbox();
   const list=currentCards(), s=statusInfo(), nIn=inboxCards().length;
-  let h=(nIn?`<button class="panel inboxbar" id="inboxopen"><span>📥</span><b>${nIn} new card${nIn>1?"s":""} from your saved videos</b><span class="go">Review →</span></button>`:"")+`<div class="top"><div><h1>Today</h1><p class="sub"><span id="syncdot" class="dot ${s.k}" title="${esc(s.t)}"></span>${list.length?`${list.length} card${list.length>1?"s":""} left${U.practice?" · practice":""}`:"All done"}</p></div></div>`;
+  const eng=U.mode==="eng", w=engWeek();
+  let h=(nIn&&!eng?`<button class="panel inboxbar" id="inboxopen"><span>📥</span><b>${nIn} new card${nIn>1?"s":""} from your saved videos</b><span class="go">Review →</span></button>`:"")+`<div class="top"><div><h1>${eng?"English":"Tips"}</h1><p class="sub"><span id="syncdot" class="dot ${s.k}" title="${esc(s.t)}"></span>${list.length?`${list.length} card${list.length>1?"s":""} left${U.practice?" · practice":""}`:"All done"}${eng?` · week ${w} · ${PHASES[Math.min(w,12)-1]}`:""}</p></div></div><div class="seg"><button data-mode="eng" class="${eng?"on":""}">🇬🇧 English</button><button data-mode="tips" class="${eng?"":"on"}">💡 Tips</button></div>`;
+  if(!list.length&&eng){ h+=engDone(); if(U.undo) h+=`<div class="actions"><button class="round u" id="undo" title="Undo">↶</button></div>`; return h; }
   if(!list.length){
-    const all=live(), known=all.filter(c=>(c.level||0)>=3).length;
+    const all=modeLive(), known=all.filter(c=>(c.level||0)>=3).length;
     const next=all.slice().sort((a,b)=>a.due<b.due?-1:1)[0];
     h+=`<div class="panel done"><div class="big">${all.length?"🎉":"🃏"}</div><h2>${all.length?"You're done for today":"No cards yet"}</h2>
       <p class="muted">${all.length?(next?`Next card comes ${nice(next.due)}.`:""):"Add a line you heard today."}</p>
@@ -342,6 +367,7 @@ function vToday(){
   return h;
 }
 function cardHTML(c,pos,isInbox){
+  if(c.deck==="eng") return engCardHTML(c,pos);
   const cat=catOf(c.cat), hasCue=!!(c.cue&&c.cue.trim()), hidden=false;
   return `<div class="tc ${pos===1?"back1":pos===2?"back2":""}" ${pos===0?'id="top"':""} data-id="${c.id}">
     <div class="band" style="background:${cat.color}"></div>
@@ -357,6 +383,7 @@ function cardHTML(c,pos,isInbox){
 }
 
 function vAdd(){
+  if(U.mode==="eng") return engAdd();
   const a=U.add, picked=a.cat;
   return `<div class="top"><div><h1>New card</h1><p class="sub">Write it the way you'd say it.</p></div></div>
   ${a.shared?`<div class="shared">From: ${linkify(a.shared)}</div>`:""}
@@ -375,14 +402,14 @@ function vAdd(){
 }
 
 function vLib(){
-  let list=live();
+  let list=modeLive();
   const counts={}; list.forEach(c=>counts[c.cat]=(counts[c.cat]||0)+1);
   if(U.filter) list=list.filter(c=>c.cat===U.filter);
   if(U.q){ const q=U.q.toLowerCase(); list=list.filter(c=>(c.text+" "+(c.cue||"")+" "+(c.note||"")).toLowerCase().includes(q)); }
   list.sort((a,b)=>(b.created||"")<(a.created||"")?-1:1);
-  let h=`<div class="top"><div><h1>Library</h1><p class="sub">${live().length} cards</p></div></div>
+  let h=`<div class="top"><div><h1>Library</h1><p class="sub">${modeLive().length} cards</p></div></div>
   <input type="text" class="search" id="search" placeholder="Search your lines…" value="${esc(U.q)}">
-  <div class="chips scroll" style="margin-bottom:12px"><button class="chip ${!U.filter?"on":""}" data-filter="">All</button>${cats().filter(c=>counts[c.id]).map(c=>`<button class="chip ${U.filter===c.id?"on":""}" style="--c:${c.color}" data-filter="${c.id}">${c.emoji} ${esc(c.name)} <span class="muted">${counts[c.id]}</span></button>`).join("")}</div>`;
+  <div class="chips scroll" style="margin-bottom:12px"><button class="chip ${!U.filter?"on":""}" data-filter="">All</button>${libCats().filter(c=>counts[c.id]).map(c=>`<button class="chip ${U.filter===c.id?"on":""}" style="--c:${c.color}" data-filter="${c.id}">${c.emoji} ${esc(c.name)} <span class="muted">${counts[c.id]}</span></button>`).join("")}</div>`;
   if(!list.length) h+=`<div class="panel done"><p class="muted">${live().length?"Nothing matches.":"Your cards will show up here."}</p></div>`;
   for(const c of list){
     const cat=catOf(c.cat);
@@ -510,7 +537,7 @@ function bindDeck(){
   let x0=0,y0=0,dx=0,dy=0,id=null,moved=false,t0=0;
   const sk=el.querySelector("#sk"), sa=el.querySelector("#sa");
   const reset=()=>{ el.style.transition="transform .25s"; el.style.transform=""; sk.style.opacity=0; sa.style.opacity=0; };
-  el.addEventListener("pointerdown",e=>{ if(e.target.closest("a,.cdel")||(e.pointerType==="mouse"&&e.button!==0)) return;
+  el.addEventListener("pointerdown",e=>{ if(e.target.closest("a,button")||(e.pointerType==="mouse"&&e.button!==0)) return;
     id=e.pointerId; x0=e.clientX; y0=e.clientY; dx=dy=0; moved=false; t0=Date.now(); dragging=true;
     try{ el.setPointerCapture(id); }catch(err){} el.style.transition="none"; });
   el.addEventListener("pointermove",e=>{ if(e.pointerId!==id) return; e.preventDefault();
@@ -529,7 +556,10 @@ document.addEventListener("keydown",e=>{ if(U.tab!=="today"||busy()) return; if(
 /* ---------- clicks ---------- */
 document.getElementById("nav").addEventListener("click",e=>{ const b=e.target.closest("button"); if(b) go(b.dataset.tab); });
 document.getElementById("app").addEventListener("click",async e=>{
-  const t=e.target.closest("button,[data-open]"); if(!t) return; const id=t.id;
+  const t=e.target.closest("button,[data-open],[data-plan]"); if(!t) return; const id=t.id;
+  if(t.dataset.mode){ U.mode=t.dataset.mode; LS.set("kc_mode",U.mode); U.queue=null; U.revealed=false; U.undo=null; U.filter=null; return render(); }
+  if(t.dataset.plan){ if(e.target.closest("a")) return; const k="kc_plan_"+today(), p=LS.get(k,{}); p[t.dataset.plan]=!p[t.dataset.plan]; LS.set(k,p); return render(); }
+  if(t.dataset.talk) return startTalk(t);
   if(id==="glogin"||id==="relogin") return login();
   if(t.dataset.go) return go(t.dataset.go);
   if(id==="inboxopen"){ U.inbox=true; render(); window.scrollTo(0,0); return; }
@@ -539,7 +569,7 @@ document.getElementById("app").addEventListener("click",async e=>{
   if(id==="know") return flyOut(true);
   if(id==="again") return flyOut(false);
   if(id==="undo"&&U.undo){ const c={...U.undo}; U.undo=null; U.queue=[c.id,...(U.queue||[]).filter(x=>x!==c.id)]; U.done=Math.max(0,U.done-1); if(c.due>today()) U.retry.add(c.id); saveCard(c); render(); return; }
-  if(id==="practice"){ const all=live().sort(()=>Math.random()-.5).slice(0,10); U.queue=all.map(c=>c.id); U.practice=true; U.retry=new Set(); render(); return; }
+  if(id==="practice"){ const all=modeLive().sort(()=>Math.random()-.5).slice(0,10); U.queue=all.map(c=>c.id); U.practice=true; U.retry=new Set(); render(); return; }
   // add
   if(t.dataset.acat){ U.add.cat=t.dataset.acat; U.add.auto=false; return render(); }
   if(t.dataset.intent!==undefined){ U.add.intent=+t.dataset.intent; return render(); }
@@ -586,8 +616,8 @@ function saveNew(){
   const a=U.add; if(!a.text.trim()) return;
   const cat=a.cat||guessCat(a.text)||LS.get("kc_lastcat","openers"), lvl=INTENTS[a.intent].lvl;
   const c={id:uid(),cat,text:a.text.trim(),cue:a.cue.trim(),note:(a.note||a.shared||"").trim(),level:lvl,due:addDays(today(),lvl===0?0:1),created:new Date().toISOString(),seen:0};
-  LS.set("kc_lastcat",cat); U.add={text:"",cue:"",note:"",cat:null,auto:true,intent:a.intent,more:false}; U.queue=null;
-  saveCard(c); render(); toast(`Saved to ${catOf(cat).emoji} ${catOf(cat).name}`); document.getElementById("atext")?.focus();
+  if(U.mode==="eng") Object.assign(c,{deck:"eng",kind:"word",cat:"en_word",cue:a.cue.trim()||"(meaning – to fill in)",ex:(a.note||"").trim(),note:"",level:0,due:today(),intro:"mine"}); else LS.set("kc_lastcat",cat); U.add={text:"",cue:"",note:"",cat:null,auto:true,intent:a.intent,more:false}; U.queue=null;
+  saveCard(c); render(); toast(`Saved to ${catOf(c.cat).emoji} ${catOf(c.cat).name}`); document.getElementById("atext")?.focus();
 }
 
 /* ================= start ================= */
