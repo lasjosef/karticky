@@ -342,7 +342,7 @@ function vToday(){
   return h;
 }
 function cardHTML(c,pos,isInbox){
-  const cat=catOf(c.cat), hasCue=!!(c.cue&&c.cue.trim()), hidden=!isInbox&&hasCue&&!(pos===0&&U.revealed);
+  const cat=catOf(c.cat), hasCue=!!(c.cue&&c.cue.trim()), hidden=false;
   return `<div class="tc ${pos===1?"back1":pos===2?"back2":""}" ${pos===0?'id="top"':""} data-id="${c.id}">
     <div class="band" style="background:${cat.color}"></div>
     <div class="head">${tag(cat)}<span class="hr"><span class="muted" style="font-size:13px">${LEVEL_LABEL[c.level||0]}</span>${pos===0&&!isInbox?`<button class="cdel" data-del="${c.id}" title="Delete card" aria-label="Delete card">🗑</button>`:""}</span></div>
