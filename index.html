@@ -164,6 +164,18 @@ nav .badge{position:absolute;top:3px;right:9px;background:#e5484d;color:#fff;fon
 .actions.four .round{width:58px;height:58px;font-size:24px}
 .actions.four .round.u{width:42px;height:42px;font-size:17px}
 .round.h{color:#f5a524}.round.e{color:#3e63dd}
+.tc .body{justify-content:safe center}
+.deck.full{height:auto;min-height:min(60vh,500px)}
+.deck.full .tc{position:relative;inset:auto;min-height:min(60vh,500px);overflow:visible;touch-action:pan-y}
+.deck.full .tc *{touch-action:pan-y}
+.deck.full .tc .body{overflow:visible;flex:none;margin:14px 0}
+.tc.over::after{content:"⌄  tap to open the whole card";position:absolute;left:0;right:0;bottom:0;padding:38px 0 12px;text-align:center;font-size:13px;font-weight:700;color:var(--muted);background:linear-gradient(transparent,var(--card) 55%);pointer-events:none;border-radius:0 0 28px 28px}
+mark{color:inherit;font-weight:700;border-radius:5px;padding:0 3px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+mark.hk0,.opts span.hk0{background:rgba(245,165,36,.28)}
+mark.hk1,.opts span.hk1{background:rgba(62,99,221,.22)}
+mark.hk2,.opts span.hk2{background:rgba(48,164,108,.24)}
+mark.hn{background:rgba(142,78,198,.2)}
+mark.hm{background:rgba(229,72,77,.22)}
 .hidden{display:none!important}
 </style>
 </head>
@@ -379,8 +391,8 @@ function vToday(){
     if(U.undo) h+=`<div class="actions"><button class="round u" id="undo" title="Undo">↶</button></div>`;
     return h;
   }
-  h+=`<div class="deck" id="deck">`;
-  list.slice(0,3).reverse().forEach((c,i,arr)=>{ const pos=arr.length-1-i; h+=cardHTML(c,pos); });
+  h+=`<div class="deck ${U.full?"full":""}" id="deck">`;
+  (U.full?list.slice(0,1):list.slice(0,3)).reverse().forEach((c,i,arr)=>{ const pos=arr.length-1-i; h+=cardHTML(c,pos); });
   h+=`</div>`+(eng?`<div class="actions four"><button class="round a" id="again" title="Don't know (←)">✕</button><button class="round h" id="hard" title="I kinda know it – remind me (↓)">↓</button>${U.undo?`<button class="round u" id="undo" title="Undo">↶</button>`:""}<button class="round k" id="know" title="Got it (→)">✓</button><button class="round e" id="easy" title="Easy – I already use it (↑)">↑</button></div>
   <p class="hintrow">← don't know · ↓ remind me · → got it · ↑ easy, I use it</p>`:"")+`<div class="actions ${eng?"hidden":""}"><button class="round a" id="again" title="Not yet (←)">✕</button>${U.undo?`<button class="round u" id="undo" title="Undo">↶</button>`:""}<button class="round k" id="know" title="I know it (→)">✓</button></div>
   <p class="hintrow ${eng?"hidden":""}">Swipe right if you know it · left if not yet${matchMedia("(pointer:fine)").matches?" · or use ← →":""}</p>`;
@@ -391,7 +403,7 @@ function cardHTML(c,pos,isInbox){
   const cat=catOf(c.cat), hasCue=!!(c.cue&&c.cue.trim()), hidden=false;
   return `<div class="tc ${pos===1?"back1":pos===2?"back2":""}" ${pos===0?'id="top"':""} data-id="${c.id}">
     <div class="band" style="background:${cat.color}"></div>
-    <div class="head">${tag(cat)}<span class="hr"><span class="muted" style="font-size:13px">${LEVEL_LABEL[c.level||0]}</span>${pos===0&&!isInbox?`<button class="cdel" data-del="${c.id}" title="Delete card" aria-label="Delete card">🗑</button>`:""}</span></div>
+    <div class="head">${tag(cat)}<span class="hr"><span class="muted" style="font-size:13px">${LEVEL_LABEL[c.level||0]}</span>${pos===0&&!isInbox?`<button class="cdel" data-full="1" title="Open the whole card">${U.full?"⤡":"⤢"}</button>`:""}${pos===0&&!isInbox?`<button class="cdel" data-del="${c.id}" title="Delete card" aria-label="Delete card">🗑</button>`:""}</span></div>
     <div class="body">
       ${hasCue?`<div class="cue"><b>When</b>${esc(c.cue)}</div>`:""}
       ${hidden?`<div class="reveal">What would you say?<br><span style="font-size:13px">tap to see the line</span></div>`:`<div class="line ${c.text.length>140?"long":""}">${esc(c.text)}</div>`}
@@ -530,9 +542,9 @@ function render(){
   nav.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.tab===U.tab));
   const n=dueCards(S.items).length+inboxCards().length, tb=nav.querySelector('[data-tab="today"]'); tb.querySelector(".badge")?.remove();
   if(n&&U.tab!=="today") tb.insertAdjacentHTML("beforeend",`<span class="badge">${n}</span>`);
-  if(U.tab==="today"){ bindDeck(); if(typeof engImgs==="function") engImgs(); }
+  if(U.tab==="today"){ bindDeck(); if(typeof engImgs==="function") engImgs(); markOver(); }
 }
-function go(tab){ if(!TABS.includes(tab)) tab="today"; U.tab=tab; U.open=null; U.edit=null; U.confirm=null; U.confirmOut=false; U.revealed=false;
+function go(tab){ if(!TABS.includes(tab)) tab="today"; U.tab=tab; U.open=null; U.edit=null; U.confirm=null; U.confirmOut=false; U.revealed=false; U.full=false;
   if(tab==="today") U.queue=U.queue&&U.practice?U.queue:null; try{history.replaceState(null,"",REDIRECT+"#"+tab);}catch(e){}
   render(); window.scrollTo(0,0); if(tab==="add") setTimeout(()=>document.getElementById("atext")?.focus(),50); if(tab==="set") refreshSub().then(()=>U.tab==="set"&&render()); }
 
@@ -544,7 +556,7 @@ function answerTop(g){ if(typeof g==="boolean") g=g?"good":"again"; const know=g
     else { deleteCard(c.id); }
     render(); return; }
   const list=currentCards(); if(!list.length) return; const c=list[0];
-  U.undo={...c}; const n=gradeCard(c,g,U.practice); U.done++; U.revealed=false;
+  U.undo={...c}; const n=gradeCard(c,g,U.practice); U.done++; U.revealed=false; U.full=false; if(!U.practice) toast(g==="again"?"↺ Back tomorrow – from the start":"✓ Back "+(n.due===addDays(today(),1)?"tomorrow":"in "+LEVELS[n.level]+" days")+" · it never disappears");
   U.queue=U.queue.filter(id=>id!==c.id);
   if(!know&&!U.retry.has(c.id)){ U.retry.add(c.id); U.queue.push(c.id); } // one more try at the end of today's stack
   saveCard(n); render();
@@ -552,8 +564,11 @@ function answerTop(g){ if(typeof g==="boolean") g=g?"good":"again"; const know=g
 function flyOut(g){ if(typeof g==="boolean") g=g?"good":"again"; const el=document.getElementById("top"); if(!el) return answerTop(g);
   el.style.transition="transform .28s ease-in, opacity .28s"; el.style.transform={good:"translateX(140%) rotate(24deg)",again:"translateX(-140%) rotate(-24deg)",easy:"translateY(-130%)",hard:"translateY(130%)"}[g]; el.style.opacity="0";
   setTimeout(()=>answerTop(g),230); }
+function markOver(){ const el=document.getElementById("top"); if(!el||U.full) return; const b=el.querySelector(".body");
+  if(b&&b.scrollHeight>b.clientHeight+4) el.classList.add("over"); el.querySelectorAll("img").forEach(im=>im.addEventListener("load",markOver,{once:true})); }
 function bindDeck(){
   const el=document.getElementById("top"); if(!el) return;
+  if(U.full){ el.addEventListener("click",e=>{ if(e.target.closest("a,button")) return; U.revealed=!U.revealed; render(); }); return; }
   let x0=0,y0=0,dx=0,dy=0,id=null,moved=false,t0=0;
   const sk=el.querySelector("#sk"), sa=el.querySelector("#sa"), su=el.querySelector("#su"), sd=el.querySelector("#sd"), op=(x,v)=>{ if(x) x.style.opacity=v; };
   const reset=()=>{ el.style.transition="transform .25s"; el.style.transform=""; op(sk,0); op(sa,0); op(su,0); op(sd,0); };
@@ -570,7 +585,7 @@ function bindDeck(){
     const vert=!!su&&Math.abs(dy)>Math.abs(dx);
     if(vert&&(Math.abs(dy)>80||(Math.abs(dy)>40&&Date.now()-t0<250))){ flyOut(dy<0?"easy":"hard"); return; }
     if(!vert&&(Math.abs(dx)>80||fast)){ flyOut(dx>0?"good":"again"); return; }
-    reset(); if(!moved){ U.revealed=!U.revealed; render(); } });
+    reset(); if(!moved){ if(el.classList.contains("over")&&!el.querySelector(".reveal")) U.full=true; else U.revealed=!U.revealed; render(); if(U.full) window.scrollTo(0,0); } });
   el.addEventListener("pointercancel",e=>{ if(e.pointerId!==id) return; id=null; dragging=false; reset(); });
 }
 document.addEventListener("keydown",e=>{ if(U.tab!=="today"||busy()) return; if(U.inbox&&e.key===" ") return;
@@ -582,6 +597,7 @@ document.getElementById("app").addEventListener("click",async e=>{
   const t=e.target.closest("button,[data-open],[data-plan]"); if(!t) return; const id=t.id;
   if(t.dataset.mode){ U.mode=t.dataset.mode; LS.set("kc_mode",U.mode); U.queue=null; U.revealed=false; U.undo=null; U.filter=null; return render(); }
   if(t.dataset.plan){ if(e.target.closest("a")) return; const k="kc_plan_"+today(), p=LS.get(k,{}); p[t.dataset.plan]=!p[t.dataset.plan]; LS.set(k,p); return render(); }
+  if(t.dataset.full){ U.full=!U.full; render(); window.scrollTo(0,0); return; }
   if(t.dataset.talk) return startTalk(t);
   if(t.dataset.say!==undefined) return say(t.dataset.say);
   if(t.dataset.offline) return prepOffline(t);
