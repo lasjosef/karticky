@@ -26,14 +26,17 @@ const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
 const today = () => ymd(new Date());
 const addDays = (s, n) => { const [y, m, d] = s.split("-").map(Number); const x = new Date(y, m - 1, d); x.setDate(x.getDate() + n); return ymd(x); };
 
-/* swipe right = I know it (comes back less often), left = not yet (back tomorrow, more often) */
-function swipeCard(c, know, practice) {
-  const t = today(), cur = c.level || 0;
-  let lvl = know ? Math.min(LEVELS.length - 1, cur + 1) : Math.max(0, cur - 2);
-  if (practice && know) lvl = cur;                       // extra practice never skips ahead
-  const due = know ? (practice ? c.due : addDays(t, LEVELS[lvl])) : addDays(t, 1);
-  return { ...c, level: lvl, due, last: know ? "know" : "again", seen: (c.seen || 0) + 1, lastSeen: t, upd: Date.now() };
+/* four answers: "again" (←, don't know – back tomorrow, start over), "hard" (↓, I kinda know it – same interval, remind me),
+   "good" (→, got it – next step), "easy" (↑, I already use it – jump far ahead). c.st counts learning steps (0,1 = learn, 2+ = test). */
+function gradeCard(c, g, practice) {
+  const t = today(), cur = c.level || 0, max = LEVELS.length - 1;
+  let lvl = g === "again" ? 0 : g === "hard" ? cur : g === "good" ? Math.min(max, cur + 1) : Math.min(max, cur + 3);
+  if (practice && g !== "again") lvl = cur;                        // extra practice never skips ahead
+  const due = g === "again" ? addDays(t, 1) : (practice ? c.due : addDays(t, LEVELS[lvl]));
+  const st = g === "again" ? 0 : g === "easy" ? Math.max(2, (c.st || 0) + 1) : (c.st || 0) + 1;
+  return { ...c, level: lvl, due, st, grade: g, last: g === "again" ? "again" : "know", seen: (c.seen || 0) + 1, lastSeen: t, upd: Date.now() };
 }
+function swipeCard(c, know, practice) { return gradeCard(c, know ? "good" : "again", practice); }
 function dueCards(items) {
   const t = today();
   return (items || []).filter(c => !c.del && !c.inbox && c.due <= t)
