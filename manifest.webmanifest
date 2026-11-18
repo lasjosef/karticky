@@ -16,7 +16,8 @@
     {"src": "icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
   ],
   "shortcuts": [
-    {"name": "Add a card", "url": "./#add", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]}
+    {"name": "English cards", "short_name": "English", "url": "./#today", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
+    {"name": "Add a word", "short_name": "Add", "url": "./#add", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]}
   ],
   "share_target": {
     "action": "./",
