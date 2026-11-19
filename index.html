@@ -200,6 +200,19 @@ mark.hm{background:rgba(229,72,77,.22)}
 .nbi .m span:last-child{display:flex;gap:4px;align-items:center}
 .flip{min-height:44vh;display:flex;flex-direction:column;justify-content:center;gap:14px;text-align:center}
 .flip .ft{font-size:24px;font-weight:700;line-height:1.35;white-space:pre-wrap}
+.seg button{white-space:nowrap}
+.item.rd.off{opacity:.55}
+.item.rd.dn .t{color:var(--muted)}
+.bar{height:8px;border-radius:4px;background:var(--soft);overflow:hidden}.bar i{display:block;height:100%;background:#30a46c;border-radius:4px}
+.panel.chap .ek{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:14px;letter-spacing:.6px;text-transform:uppercase;color:#30a46c}
+.panel.chap .rt{font-family:"Barlow Condensed",sans-serif;text-transform:uppercase;font-size:30px;line-height:1.05;margin:4px 0 12px}
+.timg.big{width:100%;height:190px;object-fit:cover;border-radius:18px;background:var(--soft);margin-bottom:12px;display:block}
+.ctext{font-size:18px;line-height:1.6;margin-bottom:10px}
+.panel.chap .opts{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.panel.chap .opts span{padding:6px 11px;border-radius:12px;font-weight:700;font-size:15px}
+.qa{padding:10px 0;border-top:1px solid var(--line)}.qa b{display:block;font-size:16px;margin-bottom:6px}
+.qa .ans1{font-size:16px;line-height:1.5;background:var(--soft);border-radius:12px;padding:8px 12px}
+.panel.chap .yt{font-size:15px;line-height:1.4;background:var(--soft);border-radius:14px;padding:10px 12px;margin:12px 0}
 .hidden{display:none!important}
 </style>
 </head>
@@ -216,6 +229,7 @@ mark.hm{background:rgba(229,72,77,.22)}
 <script src="core.js"></script>
 <script src="eng.js"></script>
 <script src="gym.js"></script>
+<script src="explore.js"></script>
 <script>
 /* ================= Google sign-in + Drive (your own Drive, folder "Karticky") ================= */
 const CLIENT_ID="442015155431-ibljcsrig896c9ds3isod4utsbko7pbv.apps.googleusercontent.com";
@@ -399,10 +413,11 @@ function vInbox(){
   return h;
 }
 function vToday(){
+  if(U.mode==="exp") return vExplore();
   if(U.inbox) return vInbox();
   const list=currentCards(), s=statusInfo(), nIn=inboxCards().length;
   const eng=U.mode==="eng", w=engWeek();
-  let h=(nIn&&!eng?`<button class="panel inboxbar" id="inboxopen"><span>📥</span><b>${nIn} new card${nIn>1?"s":""} from your saved videos</b><span class="go">Review →</span></button>`:"")+`<div class="top"><div><h1>${eng?"English":"Tips"}</h1><p class="sub"><span id="syncdot" class="dot ${s.k}" title="${esc(s.t)}"></span>${list.length?`${list.length} card${list.length>1?"s":""} left${U.practice?" · practice":""}`:"All done"}${eng?` · week ${w} · ${PHASES[Math.min(w,12)-1]}`:""}</p></div></div><div class="seg"><button data-mode="eng" class="${eng?"on":""}">🇬🇧 English</button><button data-mode="tips" class="${eng?"":"on"}">💡 Tips</button></div>`;
+  let h=(nIn&&!eng?`<button class="panel inboxbar" id="inboxopen"><span>📥</span><b>${nIn} new card${nIn>1?"s":""} from your saved videos</b><span class="go">Review →</span></button>`:"")+`<div class="top"><div><h1>${eng?"English":"Tips"}</h1><p class="sub"><span id="syncdot" class="dot ${s.k}" title="${esc(s.t)}"></span>${list.length?`${list.length} card${list.length>1?"s":""} left${U.practice?" · practice":""}`:"All done"}${eng?` · week ${w} · ${PHASES[Math.min(w,12)-1]}`:""}</p></div></div>${modeSeg()}`;
   if(!list.length&&eng){ h+=engDone(); if(U.undo) h+=`<div class="actions"><button class="round u" id="undo" title="Undo">↶</button></div>`; return h; }
   if(!list.length){
     const all=modeLive(), known=all.filter(c=>(c.level||0)>=3).length;
@@ -613,13 +628,13 @@ function bindDeck(){
     reset(); if(!moved){ if(el.classList.contains("over")&&!el.querySelector(".reveal")) U.full=true; else U.revealed=!U.revealed; render(); if(U.full) window.scrollTo(0,0); } });
   el.addEventListener("pointercancel",e=>{ if(e.pointerId!==id) return; id=null; dragging=false; reset(); });
 }
-document.addEventListener("keydown",e=>{ if(U.tab!=="today"||busy()) return; if(U.inbox&&e.key===" ") return;
+document.addEventListener("keydown",e=>{ if(U.tab!=="today"||busy()||U.mode==="exp") return; if(U.inbox&&e.key===" ") return;
   if(e.key==="ArrowRight") flyOut(true); else if(e.key==="ArrowLeft") flyOut(false); else if(e.key==="ArrowUp"&&U.mode==="eng"){ e.preventDefault(); flyOut("easy"); } else if(e.key==="ArrowDown"&&U.mode==="eng"){ e.preventDefault(); flyOut("hard"); } else if(e.key===" "){ e.preventDefault(); U.revealed=!U.revealed; render(); } });
 
 /* ---------- clicks ---------- */
 document.getElementById("nav").addEventListener("click",e=>{ const b=e.target.closest("button"); if(b) go(b.dataset.tab); });
 document.getElementById("app").addEventListener("click",async e=>{
-  const t=e.target.closest("button,[data-open],[data-plan]"); if(!t) return; const id=t.id;
+  const t=e.target.closest("button,[data-open],[data-plan],[data-exp],[data-expch]"); if(!t) return; const id=t.id;
   if(t.dataset.mode){ U.mode=t.dataset.mode; LS.set("kc_mode",U.mode); U.queue=null; U.revealed=false; U.undo=null; U.filter=null; return render(); }
   if(t.dataset.plan){ if(e.target.closest("a")) return; const k="kc_plan_"+today(), p=LS.get(k,{}); p[t.dataset.plan]=!p[t.dataset.plan]; LS.set(k,p); return render(); }
   if(t.dataset.full){ U.full=!U.full; render(); window.scrollTo(0,0); return; }
@@ -630,6 +645,7 @@ document.getElementById("app").addEventListener("click",async e=>{
   if(t.dataset.nbv){ U.nb=t.dataset.nbv; U.flip=false; return render(); }
   if(t.dataset.nbf!==undefined){ U.nbf=t.dataset.nbf; U.flipI=0; return render(); }
   if(gymClick(id)) return;
+  if(expClick(t)) return;
   if(t.dataset.say!==undefined) return say(t.dataset.say);
   if(t.dataset.offline) return prepOffline(t);
   if(id==="glogin"||id==="relogin") return login();
