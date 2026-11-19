@@ -5,7 +5,7 @@ const JOURNEYS={};
 const _jc={};
 function journey(id){ if(_jc[id]) return _jc[id]; const J=JOURNEYS[id]; if(!J) return null; let n=0;
   J.ch=J.raw.split("\n").map(s=>s.trim()).filter(s=>s&&!s.startsWith("#")).map(s=>{ const f=s.split("|").map(x=>x.trim());
-    return {n:++n,sec:f[0],title:f[1],wiki:f[2],keys:f[3].split(",").map(x=>x.trim()),text:f[4],qs:(f[5]||"").split(";;").map(x=>x.split("::").map(y=>y.trim())).filter(x=>x[0])}; });
+    return {n:++n,sec:f[0],title:f[1],wiki:f[2],keys:f[3].split(", ").map(x=>x.trim()),text:f[4],qs:(f[5]||"").split(";;").map(x=>x.split("::").map(y=>y.trim())).filter(x=>x[0])}; });
   return _jc[id]=J; }
 const expItem=id=>S.items.find(c=>c.id==="exp_"+id&&!c.del);
 const expDone=id=>(expItem(id)||{}).done||[];
