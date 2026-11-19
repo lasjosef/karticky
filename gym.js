@@ -346,4 +346,26 @@ Quick comeback – when they tease you | Did you get dressed in the dark? | Yes,
 Quick comeback – when they tease you | You can't cook! | That's why I'm so good at choosing restaurants. / I can – the smoke alarm just has very high standards.
 Quick comeback – when they tease you | You're so slow. | I'm not slow, I'm thorough. / Good things come to those who wait – you're welcome.
 Quick comeback – when they tease you | Your jokes are terrible. | And yet you're smiling. / Terrible jokes need brave people. I'm a hero.
+Running bit – give her a role and keep the joke going | So what are you looking for? | My keys. Seriously, I had them five minutes ago. / Someone who can help me find my keys. How are you at finding things? Perfect – you're hired.
+Running bit – give her a role and keep the joke going | Hired for what? | Don't get too excited – it's a probationary position. / Assistant key finder. Unpaid, but excellent company.
+Running bit – give her a role and keep the joke going | How long is the probation? | Depends on your performance. So far: lots of questions, very few keys. / One dinner. Then we review.
+Running bit – give her a role and keep the joke going | You're such a dork. | Wow. First date and you're already verbally abusing me. / I'm writing that down for your performance review.
+Running bit – give her a role and keep the joke going | Shut up! | See, now you're giving me orders. This is getting way too toxic. / Two minutes in and you're already the boss. Classic.
+Running bit – give her a role and keep the joke going | You're ridiculous. | And yet here you are, smiling like it's the best night of your life. / Says the woman who can't stop laughing.
+Playful challenge – doubt her a little, make her prove it | I'm really competitive. | Oh, you're one of those. Noted. / Good to know. I'll let you lose gracefully.
+Playful challenge – doubt her a little, make her prove it | I'm good at reading people. | Oh yeah? Go on then – what have you figured out about me? / Prove it. What am I thinking right now?
+Playful challenge – doubt her a little, make her prove it | I'm a great dancer. | Big claim. I'll need evidence. / Bold. We'll see about that later.
+Playful challenge – doubt her a little, make her prove it | I'm never late. | Never? That's exactly what a late person would say. / We'll test that on Saturday.
+Misinterpret on purpose – twist it into an offer or a confession | I'm a good cook. | One day and you're already offering to cook for me? / Dinner at yours already? Slow down.
+Misinterpret on purpose – twist it into an offer or a confession | I love long walks. | Are you asking me on a walk? A bit forward – but I accept. / Is that an invitation? I'll bring snacks.
+Misinterpret on purpose – twist it into an offer or a confession | I'm free on Friday. | Are you asking me out? I'm flattered. / Smooth. Let me check my diary… yes.
+Misinterpret on purpose – twist it into an offer or a confession | I have a thing for tall guys. | Should I stand up so you can see properly? / Noted. I'll stand up straighter.
+Exaggeration – make it hugely bigger | I'm a real foodie. | So McDonald's for the first date is officially off the table. Got it. / Right, I'll cancel the kebab reservation.
+Callback – bring back something from earlier | (Earlier she said she never eats dessert. Now she's stealing bites of yours.) | Interesting behaviour from a woman who doesn't eat dessert. / I see the no-dessert rule is going well.
 `;
+
+// extra technique tips (Kamil @kamilsgotgame, @whatawomanreallywants)
+Object.assign(TECH_TIPS,{
+ "Running bit":"Never answer seriously. Misread her question, give her a role ('you're hired'), then keep that same joke going line after line – her reactions become new material.",
+ "Playful challenge":"Don't just say 'oh really?' – doubt her a little and make her prove it. It starts a game between you.",
+ "Misinterpret on purpose":"Twist what she said into an offer or a confession – with a smirk, because you both know that's not what she meant."});
